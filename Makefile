@@ -20,6 +20,7 @@ else
 	MESON = meson
 	NINJA = ninja
 endif
+MESON_FLAGS += -Dtest=true
 
 SANATIZE = 1
 

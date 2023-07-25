@@ -4,3 +4,9 @@ option(
     value: 'auto',
     description: 'Build with thread support.',
 )
+option(
+    'test',
+    type: 'boolean',
+    value: 'false',
+    description: 'Run tests.',
+)

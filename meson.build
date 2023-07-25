@@ -22,4 +22,7 @@ libcextras_dep = declare_dependency(
 )
 
 subdir('testlib')
-subdir('tests')
+
+if get_option('test')
+    subdir('tests')
+endif
