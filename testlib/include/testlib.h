@@ -5,8 +5,11 @@
  */
 
 #ifndef TESTLIB_H
-
 #define TESTLIB_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct TestlibTest {
 	void (*func)(void);
@@ -14,13 +17,21 @@ struct TestlibTest {
 	_Bool enabled;
 };
 
+#ifdef __cplusplus
+#define DECLARE_TESTS extern "C" const struct TestlibTest testlib_tests[] = {
+#else
 #define DECLARE_TESTS const struct TestlibTest testlib_tests[] = {
+#endif
+
 #define TEST(func) {func, #func, 1},
 #define NO_TEST(func) {func, #func, 0},
 
 #define END_TESTS \
-	{ 0 } \
+	{ 0, 0, 0 } \
 	} \
 	;
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* TESTLIB_H */
