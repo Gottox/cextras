@@ -13,7 +13,7 @@ foreach test : tests
         install: false,
         dependencies: [
             testlib_dep,
-            libcextras_dep,
+            cextras_dep,
         ],
     )
     test(test, test_exe)

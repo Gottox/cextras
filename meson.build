@@ -1,5 +1,5 @@
 project(
-    'libcextras',
+    'cextras',
     'c',
     default_options: [
         'c_std=c11',
@@ -15,9 +15,9 @@ subdir('lib')
 subdir('include')
 
 
-libcextras_dep = declare_dependency(
+cextras_dep = declare_dependency(
     include_directories: include_directories('include'),
-    link_with: libcextras,
+    link_with: cextras,
     dependencies: threads_dep,
 )
 
