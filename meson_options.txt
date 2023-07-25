@@ -7,6 +7,6 @@ option(
 option(
     'test',
     type: 'boolean',
-    value: 'false',
+    value: false,
     description: 'Run tests.',
 )
