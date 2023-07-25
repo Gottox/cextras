@@ -1,0 +1,6 @@
+option(
+    'threads',
+    type: 'feature',
+    value: 'auto',
+    description: 'Build with thread support.',
+)
