@@ -1,3 +1,6 @@
+
+#define _GNU_SOURCE
+
 #include <testlib.h>
 #include <assert.h>
 #include <pthread.h>

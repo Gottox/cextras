@@ -1,4 +1,13 @@
-project('libcextras', 'c', version: '0.1', default_options: ['warning_level=3'])
+project(
+    'libcextras',
+    'c',
+    default_options: [
+        'c_std=c11',
+        'warning_level=3',
+        'optimization=0',
+    ],
+    version: '0.1',
+)
 
 threads_dep = dependency('threads', required: get_option('threads'))
 

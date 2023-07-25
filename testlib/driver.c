@@ -4,14 +4,17 @@
  * @created     : Tuesday Jul 25, 2023 13:20:23 CEST
  */
 
-#include "include/testlib.h"
+#define _GNU_SOURCE
+
+#include <unistd.h>
 #include <fnmatch.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <unistd.h>
+
+#include "include/testlib.h"
 
 extern const struct TestlibTest testlib_tests[];
 
