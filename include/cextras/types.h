@@ -31,23 +31,18 @@
  * @file         sqsh_primitive_private.h
  */
 
-#ifndef CEXTRA_MACRO_H
-#define CEXTRA_MACRO_H
+#ifndef CEXTRA_TYPES_H
+#define CEXTRA_TYPES_H
+
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define CEXTRA_NO_UNUSED __attribute__((warn_unused_result))
-
-#define CEXTRA_ADD_OVERFLOW(a, b, result) __builtin_add_overflow(a, b, result)
-#define CEXTRA_SUB_OVERFLOW(a, b, result) __builtin_sub_overflow(a, b, result)
-#define CEXTRA_MUL_OVERFLOW(a, b, result) __builtin_mul_overflow(a, b, result)
-
-#define CEXTRA_MIN(a, b) ((a) < (b) ? (a) : (b))
-#define CEXTRA_MAX(a, b) ((a) > (b) ? (a) : (b))
+typedef size_t cextra_index_t;
 
 #ifdef __cplusplus
 }
 #endif
-#endif /* CEXTRA_MACRO_H */
+#endif /* CEXTRA_TYPES_H */

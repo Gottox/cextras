@@ -38,6 +38,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include "macro.h"
+#include "types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -217,7 +218,7 @@ CEXTRA_NO_UNUSED int cextra_rc_map_init(
  * @param index The index to test.
  * @return True if the array is empty, false otherwise.
  */
-bool cextra_rc_map_is_empty(struct CextraRcMap *array, size_t index);
+bool cextra_rc_map_is_empty(struct CextraRcMap *array, cextra_index_t index);
 
 /**
  * @internal
@@ -230,7 +231,7 @@ bool cextra_rc_map_is_empty(struct CextraRcMap *array, size_t index);
  * @return 0 on success, a negative value on error.
  */
 const void *
-cextra_rc_map_set(struct CextraRcMap *array, size_t index, void *data);
+cextra_rc_map_set(struct CextraRcMap *array, cextra_index_t index, void *data);
 
 /**
  * @internal
@@ -251,7 +252,7 @@ size_t cextra_rc_map_size(const struct CextraRcMap *array);
  * @param index The index of the data.
  * @return A pointer to the retained data.
  */
-const void *cextra_rc_map_retain(struct CextraRcMap *array, size_t index);
+const void *cextra_rc_map_retain(struct CextraRcMap *array, cextra_index_t index);
 
 /**
  * @internal
@@ -275,7 +276,7 @@ int cextra_rc_map_release(struct CextraRcMap *array, const void *element);
  * @param index The index of the data to release.
  * @return 0 on success, a negative value on error.
  */
-int cextra_rc_map_release_index(struct CextraRcMap *array, size_t index);
+int cextra_rc_map_release_index(struct CextraRcMap *array, cextra_index_t index);
 
 /**
  * @internal
@@ -437,11 +438,11 @@ struct CextraLruBackendImpl {
 	/**
 	 * @brief Function that is called to retain an element.
 	 */
-	const void *(*retain)(void *backend, size_t id);
+	const void *(*retain)(void *backend, cextra_index_t id);
 	/**
 	 * @brief Function that is called to release an element.
 	 */
-	int (*release)(void *backend, size_t id);
+	int (*release)(void *backend, cextra_index_t id);
 };
 
 /**
@@ -454,8 +455,8 @@ struct CextraLru {
 	 */
 	void *backend;
 	const struct CextraLruBackendImpl *impl;
-	size_t *items;
-	size_t ring_index;
+	cextra_index_t *items;
+	cextra_index_t ring_index;
 	size_t size;
 };
 
@@ -525,9 +526,9 @@ struct CextraReader {
 	const struct CextraIteratorImpl *impl;
 	void *iterator;
 
-	size_t iterator_offset;
-	size_t buffer_offset;
-	size_t data_offset;
+	cextra_index_t iterator_offset;
+	cextra_index_t buffer_offset;
+	cextra_index_t data_offset;
 	size_t size;
 	size_t data_size;
 	struct CextraBuffer buffer;
