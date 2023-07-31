@@ -1,4 +1,8 @@
+add_languages('cpp', native: false)
+
 tests = [
+    'testlib.c',
+    'testlib.cpp',
     'concurrency/threadpool_test.c',
     'concurrency/future_test.c',
     'collection/buffer_test.c',

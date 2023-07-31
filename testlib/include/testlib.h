@@ -14,7 +14,7 @@ extern "C" {
 struct TestlibTest {
 	void (*func)(void);
 	const char *name;
-	_Bool enabled;
+	int enabled;
 };
 
 #ifdef __cplusplus
