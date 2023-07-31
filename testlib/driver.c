@@ -4,7 +4,7 @@
  * @created     : Tuesday Jul 25, 2023 13:20:23 CEST
  */
 
-#define _GNU_SOURCE
+#define _XOPEN_SOURCE
 
 #include <unistd.h>
 #include <fnmatch.h>
