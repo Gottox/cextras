@@ -34,11 +34,11 @@
 #ifndef CEXTRA_COLLECTION_H
 #define CEXTRA_COLLECTION_H
 
-#include <stdint.h>
-#include <stddef.h>
-#include <stdbool.h>
 #include "macro.h"
 #include "types.h"
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -95,8 +95,9 @@ cextra_buffer_add_size(struct CextraBuffer *buffer, size_t additional_size);
 /**
  * @internal
  * @memberof CextraBuffer
- * @brief cextra_buffer_add_size allocates additional memory for the CextraBuffer
- * and sets additional_buffer to the beginning of the additional memory.
+ * @brief cextra_buffer_add_size allocates additional memory for the
+ * CextraBuffer and sets additional_buffer to the beginning of the additional
+ * memory.
  *
  * After cextra_buffer_add_capacity has been called, the buffer will behave
  * undefined if you query data or size. In order to use the buffer again, you
@@ -252,7 +253,8 @@ size_t cextra_rc_map_size(const struct CextraRcMap *array);
  * @param index The index of the data.
  * @return A pointer to the retained data.
  */
-const void *cextra_rc_map_retain(struct CextraRcMap *array, cextra_index_t index);
+const void *
+cextra_rc_map_retain(struct CextraRcMap *array, cextra_index_t index);
 
 /**
  * @internal
@@ -276,7 +278,8 @@ int cextra_rc_map_release(struct CextraRcMap *array, const void *element);
  * @param index The index of the data to release.
  * @return 0 on success, a negative value on error.
  */
-int cextra_rc_map_release_index(struct CextraRcMap *array, cextra_index_t index);
+int
+cextra_rc_map_release_index(struct CextraRcMap *array, cextra_index_t index);
 
 /**
  * @internal
@@ -379,8 +382,8 @@ size_t cextra_rc_hash_map_size(const struct CextraRcHashMap *hash_map);
  * @param key The key of the data.
  * @return A pointer to the retained data.
  */
-const void *
-cextra_rc_hash_map_retain(struct CextraRcHashMap *hash_map, sqsh_rc_map_key_t key);
+const void *cextra_rc_hash_map_retain(
+		struct CextraRcHashMap *hash_map, sqsh_rc_map_key_t key);
 
 /**
  * @internal
@@ -392,8 +395,8 @@ cextra_rc_hash_map_retain(struct CextraRcHashMap *hash_map, sqsh_rc_map_key_t ke
  * @param element The element to release.
  * @return 0 on success, a negative value on error.
  */
-int
-cextra_rc_hash_map_release(struct CextraRcHashMap *hash_map, const void *element);
+int cextra_rc_hash_map_release(
+		struct CextraRcHashMap *hash_map, const void *element);
 
 /**
  * @internal
@@ -472,8 +475,8 @@ struct CextraLru {
  * @return 0 on success, a negative value on error.
  */
 CEXTRA_NO_UNUSED int cextra_lru_init(
-		struct CextraLru *lru, size_t size, const struct CextraLruBackendImpl *impl,
-		void *backend);
+		struct CextraLru *lru, size_t size,
+		const struct CextraLruBackendImpl *impl, void *backend);
 
 /**
  * @internal

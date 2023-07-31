@@ -32,12 +32,12 @@
  * @file         rc_map.c
  */
 
-#include <testlib.h>
+#include <assert.h>
 #include <cextras/collection.h>
 #include <stdatomic.h>
 #include <stdint.h>
+#include <testlib.h>
 #include <time.h>
-#include <assert.h>
 
 static atomic_uint rc_map_deinit_calls = 0;
 

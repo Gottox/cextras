@@ -33,9 +33,9 @@
  */
 
 #include <assert.h>
+#include <cextras/collection.h>
 #include <string.h>
 #include <testlib.h>
-#include <cextras/collection.h>
 
 static void
 init_buffer(void) {

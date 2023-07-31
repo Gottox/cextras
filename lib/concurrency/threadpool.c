@@ -184,8 +184,8 @@ out:
 
 int
 cextra_threadpool_schedule(
-		struct CextraThreadpool *threadpool, uintptr_t group, cextra_threadpool_task_t work,
-		void *data) {
+		struct CextraThreadpool *threadpool, uintptr_t group,
+		cextra_threadpool_task_t work, void *data) {
 	int rv = 0;
 	struct CextraThreadpoolTask *task = NULL;
 	struct CextraThreadpoolTask *last = NULL;
@@ -246,14 +246,15 @@ threadpool_wait(struct CextraThreadpool *threadpool, uintptr_t group) {
 		if (found == false) {
 			break;
 		}
-		for (struct CextraThreadpoolTask *task = threadpool->task_queue; task != NULL;
-			 task = task->next) {
+		for (struct CextraThreadpoolTask *task = threadpool->task_queue;
+			 task != NULL; task = task->next) {
 			if (task->group == group) {
 				found = true;
 				break;
 			}
 		}
-		rv = pthread_cond_wait(&threadpool->controller_cond, &threadpool->mutex);
+		rv = pthread_cond_wait(
+				&threadpool->controller_cond, &threadpool->mutex);
 		if (rv < 0) {
 			goto out;
 		}

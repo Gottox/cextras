@@ -42,6 +42,10 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 
+/***************************************
+ * concurrency/threadpool.c
+ */
+
 /**
  * @brief A function running a thread pool task.
  */
@@ -65,13 +69,66 @@ cextra_threadpool_t cextra_threadpool_init(size_t num_threads);
  * @param arg The argument to the task function.
  */
 int cextra_threadpool_schedule(
-		cextra_threadpool_t threadpool, uintptr_t group, cextra_threadpool_task_t task,
-		void *arg);
+		cextra_threadpool_t threadpool, uintptr_t group,
+		cextra_threadpool_task_t task, void *arg);
 
 /**
  * @brief Cleans up a threadpool.
  */
 int cextra_threadpool_destroy(cextra_threadpool_t threadpool);
+
+/***************************************
+ * concurrency/future.c
+ */
+
+typedef struct CextraFuture *cextra_future_t;
+
+/**
+ * @brief Initializes a future.
+ *
+ * @param in_value The value to store in the future.
+ *
+ * @return The initialized future.
+ */
+cextra_future_t cextra_future_init(void *in_value);
+
+/**
+ * @brief Gets the value of a future. If the future is not ready, this function
+ * blocks.
+ *
+ * @param future The future to get the value from.
+ *
+ * @return The value of the future.
+ */
+void *cextra_future_get_in_value(cextra_future_t future);
+
+/**
+ * @brief Gets the value of a future. If the future is not ready, this function
+ * blocks.
+ *
+ * @param future The future to get the value from.
+ *
+ * @return The value of the future.
+ */
+void *cextra_future_wait(cextra_future_t future);
+
+/**
+ * @brief resolves a future.
+ *
+ * @param future The future to resolve.
+ *
+ * @return 0 on success, -1 on error.
+ */
+int cextra_future_resolve(cextra_future_t future, void *value);
+
+/**
+ * @brief Cleans up a future.
+ *
+ * @param future The future to clean up.
+ *
+ * @return 0 on success, -1 on error.
+ */
+int cextra_future_destroy(cextra_future_t future);
 
 #ifdef __cplusplus
 }

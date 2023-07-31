@@ -6,9 +6,8 @@
 
 #include <testlib.h>
 
-static void test1(void)
-{
-}
+static void
+test1(void) {}
 
 DECLARE_TESTS
 TEST(test1)

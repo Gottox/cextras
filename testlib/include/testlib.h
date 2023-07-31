@@ -18,9 +18,10 @@ struct TestlibTest {
 };
 
 #ifdef __cplusplus
-#define DECLARE_TESTS extern "C" const struct TestlibTest testlib_tests[] = {
+#	define DECLARE_TESTS \
+		extern "C" const struct TestlibTest testlib_tests[] = {
 #else
-#define DECLARE_TESTS const struct TestlibTest testlib_tests[] = {
+#	define DECLARE_TESTS const struct TestlibTest testlib_tests[] = {
 #endif
 
 #define TEST(func) {func, #func, 1},

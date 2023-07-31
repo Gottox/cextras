@@ -1,12 +1,12 @@
 
 #define _GNU_SOURCE
 
-#include <testlib.h>
 #include <assert.h>
+#include <cextras/concurrency.h>
 #include <pthread.h>
 #include <stdatomic.h>
 #include <stdio.h>
-#include <cextras/concurrency.h>
+#include <testlib.h>
 #include <unistd.h>
 
 #define LENGTH(x) (sizeof(x) / sizeof(x[0]))

@@ -26,111 +26,66 @@
  *                                                                            *
  ******************************************************************************/
 
-/**
- * @author       Enno Boland (mail@eboland.de)
- * @file         lru.c
- */
-
-#include "../../include/cextras/collection.h"
-#include "../../include/cextras/error.h"
-#include <assert.h>
+#include "../../include/cextras/concurrency.h"
+#include <pthread.h>
+#include <stdbool.h>
 #include <stdlib.h>
-#include <string.h>
+#include <unistd.h>
 
-#define EMPTY_MARKER SIZE_MAX
+struct CextraFuture {
+	pthread_mutex_t mutex;
+	pthread_cond_t cond;
+	void *in_value;
+	void *out_value;
+};
 
-#if 0
-#	include <stdio.h>
-
-static void
-debug_print(const struct CextraLru *lru, const char msg, sqsh_index_t ring_index) {
-	sqsh_index_t backend_index = lru->items[ring_index];
-
-	fprintf(stderr, "%clru %lu: ", msg, ring_index);
-	size_t sum = 0;
-	for (size_t i = 0; i < lru->size; i++) {
-		sqsh_index_t cur_index = lru->items[i];
-		if (cur_index == backend_index) {
-			sum++;
-		}
-	}
-	fprintf(stderr, "idx: %lu refs: %lu\n", backend_index, sum);
-	fflush(stderr);
+struct CextraFuture *
+cextra_future_init(void *in_value) {
+	struct CextraFuture *future = calloc(1, sizeof(struct CextraFuture));
+	if (future == NULL)
+		return NULL;
+	future->in_value = in_value;
+	pthread_mutex_init(&future->mutex, NULL);
+	pthread_cond_init(&future->cond, NULL);
+	return future;
 }
-#else
-#	define debug_print(...)
-#endif
 
-int
-cextra_lru_init(
-		struct CextraLru *lru, size_t size,
-		const struct CextraLruBackendImpl *impl, void *backend) {
-	memset(lru, 0, sizeof(*lru));
-	lru->impl = impl;
-	lru->backend = backend;
-	lru->size = size;
-	if (size == 0) {
-		return 0;
-	}
+void *
+cextra_future_get_in_value(struct CextraFuture *future) {
+	return future->in_value;
+}
 
-	lru->items = calloc(size, sizeof(size_t));
-	if (lru->items == NULL) {
-		return -CEXTRA_ERR_ALLOC;
-	}
-	for (size_t i = 0; i < lru->size; i++) {
-		lru->items[i] = EMPTY_MARKER;
-	}
-	lru->ring_index = 0;
-
-	return 0;
+void *
+cextra_future_wait(struct CextraFuture *future) {
+	void *out_value = NULL;
+	pthread_mutex_lock(&future->mutex);
+	while (future->out_value == NULL)
+		pthread_cond_wait(&future->cond, &future->mutex);
+	out_value = future->out_value;
+	pthread_mutex_unlock(&future->mutex);
+	return out_value;
 }
 
 int
-cextra_lru_touch(struct CextraLru *lru, size_t index) {
-	if (lru->size == 0) {
-		return 0;
+cextra_future_resolve(struct CextraFuture *future, void *value) {
+	int rv = 0;
+	pthread_mutex_lock(&future->mutex);
+	if (future->out_value != NULL) {
+		rv = -1;
+		goto out;
 	}
+	future->out_value = value;
+	pthread_cond_broadcast(&future->cond);
 
-	size_t ring_index = lru->ring_index;
-	size_t size = lru->size;
-	void *backend = lru->backend;
-	const struct CextraLruBackendImpl *impl = lru->impl;
-	size_t last_index = lru->items[ring_index];
-
-	ring_index = (ring_index + 1) % size;
-
-	size_t old_index = lru->items[ring_index];
-
-	if (old_index == index || last_index == index) {
-		return 0;
-	}
-
-	debug_print(lru, '-', ring_index);
-	if (old_index != EMPTY_MARKER) {
-		impl->release(backend, old_index);
-	}
-
-	lru->items[ring_index] = index;
-	debug_print(lru, '+', ring_index);
-	impl->retain(backend, index);
-
-	lru->ring_index = ring_index;
-
-	return 0;
+out:
+	pthread_mutex_unlock(&future->mutex);
+	return rv;
 }
 
 int
-cextra_lru_cleanup(struct CextraLru *lru) {
-	const struct CextraLruBackendImpl *impl = lru->impl;
-
-	for (size_t i = 0; i < lru->size; i++) {
-		size_t index = lru->items[i];
-		if (index != EMPTY_MARKER) {
-			impl->release(lru->backend, index);
-		}
-	}
-	free(lru->items);
-	lru->size = 0;
-	lru->items = NULL;
+cextra_future_destroy(struct CextraFuture *future) {
+	pthread_mutex_destroy(&future->mutex);
+	pthread_cond_destroy(&future->cond);
+	free(future);
 	return 0;
 }

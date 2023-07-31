@@ -170,7 +170,8 @@ cextra_rc_hash_map_retain(
 }
 
 int
-cextra_rc_hash_map_release(struct CextraRcHashMap *hash_map, const void *element) {
+cextra_rc_hash_map_release(
+		struct CextraRcHashMap *hash_map, const void *element) {
 	for (size_t i = 0; i < hash_map->hash_map_count; i++) {
 		struct CextraRcMap *values = &hash_map->hash_maps[i].values;
 

@@ -6,13 +6,13 @@
 
 #define _XOPEN_SOURCE
 
-#include <unistd.h>
 #include <fnmatch.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
 
 #include "include/testlib.h"
 
@@ -95,8 +95,7 @@ main(int argc, char *argv[]) {
 			}
 			exit(EXIT_SUCCESS);
 		default:
-			fprintf(stderr,
-					"Usage: %s [-c always|never|auto] [-l] [test...]\n",
+			fprintf(stderr, "Usage: %s [-c always|never|auto] [-l] [test...]\n",
 					program_name);
 			exit(EXIT_FAILURE);
 		}

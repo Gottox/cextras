@@ -32,13 +32,12 @@
  * @file         rc_map.c
  */
 
-#include <testlib.h>
+#include <assert.h>
+#include <cextras/collection.h>
 #include <stdatomic.h>
 #include <stdint.h>
+#include <testlib.h>
 #include <time.h>
-#include <cextras/collection.h>
-#include <assert.h>
-
 
 static atomic_uint rc_hash_map_deinit_calls = 0;
 
@@ -54,7 +53,8 @@ init_rc_hash_map(void) {
 	int rv;
 	struct CextraRcHashMap map;
 
-	rv = cextra_rc_hash_map_init(&map, 128, sizeof(uint8_t), rc_hash_map_deinit);
+	rv = cextra_rc_hash_map_init(
+			&map, 128, sizeof(uint8_t), rc_hash_map_deinit);
 	assert(rv == 0);
 
 	rv = cextra_rc_hash_map_cleanup(&map);
@@ -67,7 +67,8 @@ set_and_get_element(void) {
 	struct CextraRcHashMap map;
 	uint8_t data = 23;
 
-	rv = cextra_rc_hash_map_init(&map, 128, sizeof(uint8_t), rc_hash_map_deinit);
+	rv = cextra_rc_hash_map_init(
+			&map, 128, sizeof(uint8_t), rc_hash_map_deinit);
 	assert(rv == 0);
 
 	uint64_t key = 4242424;
