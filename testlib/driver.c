@@ -23,7 +23,7 @@ static const char *color_bad = "";
 static const char *color_status = "";
 static const char *color_good = "";
 static const char *color_reset = "";
-static const char *patterns = NULL;
+static char **patterns = NULL;
 static int pattern_count = 0;
 
 static void
@@ -60,7 +60,7 @@ run_test(const struct TestlibTest *test) {
 	bool found = true;
 	for (int i = 0; i < pattern_count; i++) {
 		found = false;
-		if (fnmatch(patterns, test->name, 0) == 0) {
+		if (fnmatch(patterns[i], test->name, 0) == 0) {
 			found = true;
 			break;
 		}
@@ -101,22 +101,10 @@ main(int argc, char *argv[]) {
 		}
 	}
 
-	patterns = argv[optind];
+	patterns = &argv[optind];
 	pattern_count = argc - optind;
 
 	for (int i = 0; testlib_tests[i].name != NULL; i++) {
-		if (optind < argc) {
-			bool found = false;
-			for (int j = optind; j < argc; j++) {
-				if (strcmp(testlib_tests[i].name, argv[j]) == 0) {
-					found = true;
-					break;
-				}
-			}
-			if (!found) {
-				continue;
-			}
-		}
 		const struct TestlibTest *test = &testlib_tests[i];
 
 		run_test(test);
