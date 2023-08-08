@@ -66,8 +66,10 @@ run_test(const struct TestlibTest *test) {
 		}
 	}
 
-	if (found == false || test->enabled == false) {
+	if (found == false) {
 		fprintf(stderr, "%s '%s'\n IGNORED\n", program_name, test->name);
+	} else if (test->enabled == false) {
+		fprintf(stderr, "%s '%s'\n DISABLED\n", program_name, test->name);
 	} else {
 		clock_t time = clock();
 		fprintf(stderr, "%s%s '%s'%s\n", color_reset, program_name, test->name,
