@@ -25,6 +25,7 @@ static const char *color_good = "";
 static const char *color_reset = "";
 static char **patterns = NULL;
 static int pattern_count = 0;
+static bool verbose = false;
 
 static void
 color_on(char *opt) {
@@ -67,7 +68,9 @@ run_test(const struct TestlibTest *test) {
 	}
 
 	if (found == false) {
-		fprintf(stderr, "%s '%s'\n IGNORED\n", program_name, test->name);
+		if (verbose) {
+			fprintf(stderr, "%s '%s'\n IGNORED\n", program_name, test->name);
+		}
 	} else if (test->enabled == false) {
 		fprintf(stderr, "%s '%s'\n DISABLED\n", program_name, test->name);
 	} else {
@@ -86,8 +89,11 @@ main(int argc, char *argv[]) {
 	int opt;
 
 	color_on("auto");
-	while ((opt = getopt(argc, argv, "lc:")) != -1) {
+	while ((opt = getopt(argc, argv, "lcv:")) != -1) {
 		switch (opt) {
+		case 'v':
+			verbose = true;
+			break;
 		case 'c':
 			color_on(optarg);
 			break;
