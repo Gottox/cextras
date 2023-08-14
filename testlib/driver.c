@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -56,7 +57,7 @@ color_on(char *opt) {
 	}
 }
 
-static void
+static int
 run_test(const struct TestlibTest *test) {
 	bool found = true;
 	for (int i = 0; i < pattern_count; i++) {
@@ -71,26 +72,50 @@ run_test(const struct TestlibTest *test) {
 		if (verbose) {
 			fprintf(stderr, "%s '%s'\n IGNORED\n", program_name, test->name);
 		}
+		return 0;
 	} else if (test->enabled == false) {
 		fprintf(stderr, "%s '%s'\n DISABLED\n", program_name, test->name);
-	} else {
-		clock_t time = clock();
-		fprintf(stderr, "%s%s '%s'%s\n", color_reset, program_name, test->name,
-				color_status);
-		test->func();
-		fprintf(stderr, "%s finished in %lfms\n", color_reset,
-				(double)(clock() - time) * 1000.0 / (double)CLOCKS_PER_SEC);
+		return 0;
 	}
+
+	int pid = fork();
+	if (pid > 0) {
+		int exitcode = -1;
+		int status;
+		waitpid(pid, &status, 0);
+
+		if (WIFEXITED(status)) {
+			exitcode = WEXITSTATUS(status);
+		}
+		return exitcode;
+	} else if (pid < 0) {
+		perror("fork");
+		exit(EXIT_FAILURE);
+	}
+
+	clock_t time = clock();
+	fprintf(stderr, "%s%s '%s'%s\n", color_reset, program_name, test->name,
+			color_status);
+	test->func();
+	fprintf(stderr, "%s finished in %lfms\n", color_reset,
+			(double)(clock() - time) * 1000.0 / (double)CLOCKS_PER_SEC);
+
+	exit(EXIT_SUCCESS);
 }
 
 int
 main(int argc, char *argv[]) {
+	bool early_exit = false;
 	strncpy(program_name, argv[0], sizeof(program_name) - 1);
 	int opt;
+	int rv = 0;
 
 	color_on("auto");
 	while ((opt = getopt(argc, argv, "lcv:")) != -1) {
 		switch (opt) {
+		case 'e':
+			early_exit = true;
+			break;
 		case 'v':
 			verbose = true;
 			break;
@@ -103,7 +128,7 @@ main(int argc, char *argv[]) {
 			}
 			exit(EXIT_SUCCESS);
 		default:
-			fprintf(stderr, "Usage: %s [-c always|never|auto] [-l] [test...]\n",
+			fprintf(stderr, "Usage: %s [-c always|never|auto] [-e] [-l] [test...]\n",
 					program_name);
 			exit(EXIT_FAILURE);
 		}
@@ -115,8 +140,11 @@ main(int argc, char *argv[]) {
 	for (int i = 0; testlib_tests[i].name != NULL; i++) {
 		const struct TestlibTest *test = &testlib_tests[i];
 
-		run_test(test);
+		rv |= run_test(test);
+		if (rv != 0 && early_exit) {
+			break;
+		}
 	}
 
-	return 0;
+	return rv;
 }
