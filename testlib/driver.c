@@ -111,7 +111,7 @@ main(int argc, char *argv[]) {
 	int rv = 0;
 
 	color_on("auto");
-	while ((opt = getopt(argc, argv, "lcv:")) != -1) {
+	while ((opt = getopt(argc, argv, "elcv:")) != -1) {
 		switch (opt) {
 		case 'e':
 			early_exit = true;
