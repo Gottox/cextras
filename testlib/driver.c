@@ -58,7 +58,7 @@ color_on(char *opt) {
 }
 
 static int
-run_test(const struct TestlibTest *test) {
+run_test_direct(const struct TestlibTest *test) {
 	bool found = true;
 	for (int i = 0; i < pattern_count; i++) {
 		found = false;
@@ -72,12 +72,21 @@ run_test(const struct TestlibTest *test) {
 		if (verbose) {
 			fprintf(stderr, "%s '%s'\n IGNORED\n", program_name, test->name);
 		}
-		return 0;
 	} else if (test->enabled == false) {
 		fprintf(stderr, "%s '%s'\n DISABLED\n", program_name, test->name);
-		return 0;
+	} else {
+		clock_t time = clock();
+		fprintf(stderr, "%s%s '%s'%s\n", color_reset, program_name, test->name,
+				color_status);
+		test->func();
+		fprintf(stderr, "%s finished in %lfms\n", color_reset,
+				(double)(clock() - time) * 1000.0 / (double)CLOCKS_PER_SEC);
 	}
+	return 0;
+}
 
+static int
+run_test_forked(const struct TestlibTest *test) {
 	int pid = fork();
 	if (pid > 0) {
 		int exitcode = -1;
@@ -93,28 +102,23 @@ run_test(const struct TestlibTest *test) {
 		exit(EXIT_FAILURE);
 	}
 
-	clock_t time = clock();
-	fprintf(stderr, "%s%s '%s'%s\n", color_reset, program_name, test->name,
-			color_status);
-	test->func();
-	fprintf(stderr, "%s finished in %lfms\n", color_reset,
-			(double)(clock() - time) * 1000.0 / (double)CLOCKS_PER_SEC);
+	run_test_direct(test);
 
 	exit(EXIT_SUCCESS);
 }
 
 int
 main(int argc, char *argv[]) {
-	bool early_exit = false;
+	bool non_fork = false;
 	strncpy(program_name, argv[0], sizeof(program_name) - 1);
 	int opt;
 	int rv = 0;
 
 	color_on("auto");
-	while ((opt = getopt(argc, argv, "elcv:")) != -1) {
+	while ((opt = getopt(argc, argv, "nlcv:")) != -1) {
 		switch (opt) {
-		case 'e':
-			early_exit = true;
+		case 'n':
+			non_fork = true;
 			break;
 		case 'v':
 			verbose = true;
@@ -137,11 +141,17 @@ main(int argc, char *argv[]) {
 	patterns = &argv[optind];
 	pattern_count = argc - optind;
 
+	int (*run_test)(const struct TestlibTest *);
+	if (non_fork) {
+		run_test = run_test_direct;
+	} else {
+		run_test = run_test_forked;
+	}
 	for (int i = 0; testlib_tests[i].name != NULL; i++) {
 		const struct TestlibTest *test = &testlib_tests[i];
 
 		rv |= run_test(test);
-		if (rv != 0 && early_exit) {
+		if (rv != 0 && non_fork) {
 			break;
 		}
 	}
