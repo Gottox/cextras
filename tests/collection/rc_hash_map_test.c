@@ -51,77 +51,75 @@ rc_hash_map_deinit(void *data) {
 static void
 init_rc_hash_map(void) {
 	int rv;
-	struct CextraRcHashMap map;
+	struct CxRcHashMap map;
 
-	rv = cextra_rc_hash_map_init(
-			&map, 128, sizeof(uint8_t), rc_hash_map_deinit);
+	rv = cx_rc_hash_map_init(&map, 128, sizeof(uint8_t), rc_hash_map_deinit);
 	assert(rv == 0);
 
-	rv = cextra_rc_hash_map_cleanup(&map);
+	rv = cx_rc_hash_map_cleanup(&map);
 	assert(rv == 0);
 }
 
 static void
 set_and_get_element(void) {
 	int rv;
-	struct CextraRcHashMap map;
+	struct CxRcHashMap map;
 	uint8_t data = 23;
 
-	rv = cextra_rc_hash_map_init(
-			&map, 128, sizeof(uint8_t), rc_hash_map_deinit);
+	rv = cx_rc_hash_map_init(&map, 128, sizeof(uint8_t), rc_hash_map_deinit);
 	assert(rv == 0);
 
 	uint64_t key = 4242424;
-	const uint8_t *set_ptr = cextra_rc_hash_map_put(&map, key, &data);
+	const uint8_t *set_ptr = cx_rc_hash_map_put(&map, key, &data);
 	assert(rv == 0);
 	assert(set_ptr != &data);
 
-	const uint8_t *get_ptr = cextra_rc_hash_map_retain(&map, key);
+	const uint8_t *get_ptr = cx_rc_hash_map_retain(&map, key);
 	assert(rv == 0);
 	assert(get_ptr != &data);
 	assert(*get_ptr == data);
 
-	cextra_rc_hash_map_release(&map, set_ptr);
-	cextra_rc_hash_map_release(&map, get_ptr);
+	cx_rc_hash_map_release(&map, set_ptr);
+	cx_rc_hash_map_release(&map, get_ptr);
 
-	rv = cextra_rc_hash_map_cleanup(&map);
+	rv = cx_rc_hash_map_cleanup(&map);
 	assert(rv == 0);
 }
 
 static void
 check_overflow(void) {
 	int rv;
-	struct CextraRcHashMap map;
+	struct CxRcHashMap map;
 	uint8_t data = 1;
 	const uint8_t *ptr;
 
-	rv = cextra_rc_hash_map_init(&map, 4, sizeof(uint8_t), rc_hash_map_deinit);
+	rv = cx_rc_hash_map_init(&map, 4, sizeof(uint8_t), rc_hash_map_deinit);
 	assert(rv == 0);
 
-	ptr = cextra_rc_hash_map_put(&map, 1, &data);
+	ptr = cx_rc_hash_map_put(&map, 1, &data);
 	assert(*ptr == data);
-	ptr = cextra_rc_hash_map_put(&map, 2, &data);
+	ptr = cx_rc_hash_map_put(&map, 2, &data);
 	assert(*ptr == data);
-	ptr = cextra_rc_hash_map_put(&map, 3, &data);
+	ptr = cx_rc_hash_map_put(&map, 3, &data);
 	assert(*ptr == data);
-	ptr = cextra_rc_hash_map_put(&map, 4, &data);
+	ptr = cx_rc_hash_map_put(&map, 4, &data);
 	assert(*ptr == data);
 	data = 42;
-	ptr = cextra_rc_hash_map_put(&map, 5, &data);
+	ptr = cx_rc_hash_map_put(&map, 5, &data);
 	assert(*ptr == data);
 
-	const uint8_t *get_ptr = cextra_rc_hash_map_retain(&map, 5);
+	const uint8_t *get_ptr = cx_rc_hash_map_retain(&map, 5);
 	assert(rv == 0);
 	assert(*get_ptr == 42);
-	cextra_rc_hash_map_release(&map, get_ptr);
+	cx_rc_hash_map_release(&map, get_ptr);
 
-	cextra_rc_hash_map_release_key(&map, 1);
-	cextra_rc_hash_map_release_key(&map, 2);
-	cextra_rc_hash_map_release_key(&map, 3);
-	cextra_rc_hash_map_release_key(&map, 4);
-	cextra_rc_hash_map_release_key(&map, 5);
+	cx_rc_hash_map_release_key(&map, 1);
+	cx_rc_hash_map_release_key(&map, 2);
+	cx_rc_hash_map_release_key(&map, 3);
+	cx_rc_hash_map_release_key(&map, 4);
+	cx_rc_hash_map_release_key(&map, 5);
 
-	rv = cextra_rc_hash_map_cleanup(&map);
+	rv = cx_rc_hash_map_cleanup(&map);
 	assert(rv == 0);
 }
 

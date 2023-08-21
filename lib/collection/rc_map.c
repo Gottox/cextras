@@ -42,7 +42,7 @@
 #	include <stdio.h>
 
 static void
-debug_print(struct CextraRcMap *array, int index, char msg) {
+debug_print(struct CxRcMap *array, int index, char msg) {
 	fprintf(stderr, "ref_count_array: %i\n", index);
 	putc('[', stderr);
 	for (size_t i = 0; i < array->size; ++i) {
@@ -68,18 +68,18 @@ debug_print(struct CextraRcMap *array, int index, char msg) {
 #endif
 
 int
-cextra_rc_map_init(
-		struct CextraRcMap *array, size_t size, size_t element_size,
+cx_rc_map_init(
+		struct CxRcMap *array, size_t size, size_t element_size,
 		sqsh_rc_map_cleanup_t cleanup) {
 	int rv = 0;
 	array->data = calloc(size, element_size);
 	if (array->data == NULL) {
-		rv = -CEXTRA_ERR_ALLOC;
+		rv = -CX_ERR_ALLOC;
 		goto out;
 	}
 	array->ref_count = calloc(size, sizeof(*array->ref_count));
 	if (array->ref_count == NULL) {
-		rv = -CEXTRA_ERR_ALLOC;
+		rv = -CX_ERR_ALLOC;
 		goto out;
 	}
 
@@ -88,16 +88,16 @@ cextra_rc_map_init(
 	array->element_size = element_size;
 out:
 	if (rv < 0) {
-		cextra_rc_map_cleanup(array);
+		cx_rc_map_cleanup(array);
 	}
 	return rv;
 }
 
 static void *
-get_element(struct CextraRcMap *array, size_t index) {
+get_element(struct CxRcMap *array, size_t index) {
 	size_t offset;
 
-	if (CEXTRA_MUL_OVERFLOW(index, array->element_size, &offset)) {
+	if (CX_MUL_OVERFLOW(index, array->element_size, &offset)) {
 		return NULL;
 	}
 
@@ -105,7 +105,7 @@ get_element(struct CextraRcMap *array, size_t index) {
 }
 
 int
-retain_rc(struct CextraRcMap *array, size_t index) {
+retain_rc(struct CxRcMap *array, size_t index) {
 	int ref_count = ++array->ref_count[index];
 
 	assert(ref_count >= 1);
@@ -115,7 +115,7 @@ retain_rc(struct CextraRcMap *array, size_t index) {
 }
 
 int
-release_rc(struct CextraRcMap *array, size_t index) {
+release_rc(struct CxRcMap *array, size_t index) {
 	int ref_count = --array->ref_count[index];
 
 	debug_print(array, index, '-');
@@ -126,21 +126,21 @@ release_rc(struct CextraRcMap *array, size_t index) {
 }
 
 bool
-cextra_rc_map_is_empty(struct CextraRcMap *array, size_t index) {
+cx_rc_map_is_empty(struct CxRcMap *array, size_t index) {
 	return array->ref_count[index] == 0;
 }
 
 const void *
-cextra_rc_map_set(struct CextraRcMap *array, size_t index, void *data) {
+cx_rc_map_set(struct CxRcMap *array, size_t index, void *data) {
 	void *target;
 
 	target = get_element(array, index);
 
 	/* If the element is already in the array, cleanup the new data and retain
 	 * the old. */
-	if (cextra_rc_map_is_empty(array, index) == false) {
+	if (cx_rc_map_is_empty(array, index) == false) {
 		array->cleanup(data);
-		return cextra_rc_map_retain(array, index);
+		return cx_rc_map_retain(array, index);
 	}
 
 	memcpy(target, data, array->element_size);
@@ -151,10 +151,10 @@ cextra_rc_map_set(struct CextraRcMap *array, size_t index, void *data) {
 }
 
 const void *
-cextra_rc_map_retain(struct CextraRcMap *array, size_t index) {
+cx_rc_map_retain(struct CxRcMap *array, size_t index) {
 	void *data = NULL;
 
-	if (cextra_rc_map_is_empty(array, index) == false) {
+	if (cx_rc_map_is_empty(array, index) == false) {
 		retain_rc(array, index);
 		debug_print(array, index, '+');
 		data = get_element(array, index);
@@ -164,7 +164,7 @@ cextra_rc_map_retain(struct CextraRcMap *array, size_t index) {
 }
 
 int
-cextra_rc_map_release(struct CextraRcMap *array, const void *element) {
+cx_rc_map_release(struct CxRcMap *array, const void *element) {
 	if (element == NULL) {
 		return 0;
 	}
@@ -172,11 +172,11 @@ cextra_rc_map_release(struct CextraRcMap *array, const void *element) {
 	const size_t index =
 			((uint8_t *)element - array->data) / array->element_size;
 
-	return cextra_rc_map_release_index(array, index);
+	return cx_rc_map_release_index(array, index);
 }
 
 int
-cextra_rc_map_release_index(struct CextraRcMap *array, size_t index) {
+cx_rc_map_release_index(struct CxRcMap *array, size_t index) {
 	int ref_count = release_rc(array, index);
 
 	if (ref_count == 0) {
@@ -188,7 +188,7 @@ cextra_rc_map_release_index(struct CextraRcMap *array, size_t index) {
 }
 
 bool
-cextra_rc_map_contains(struct CextraRcMap *array, const void *element) {
+cx_rc_map_contains(struct CxRcMap *array, const void *element) {
 	const uint8_t *needle = (uint8_t *)element;
 
 	if (needle == NULL) {
@@ -207,12 +207,12 @@ cextra_rc_map_contains(struct CextraRcMap *array, const void *element) {
 }
 
 size_t
-cextra_rc_map_size(const struct CextraRcMap *array) {
+cx_rc_map_size(const struct CxRcMap *array) {
 	return array->size;
 }
 
 int
-cextra_rc_map_cleanup(struct CextraRcMap *array) {
+cx_rc_map_cleanup(struct CxRcMap *array) {
 #ifndef NDEBUG
 	if (array->ref_count != NULL) {
 		int acc = 0;
@@ -233,15 +233,15 @@ cextra_rc_map_cleanup(struct CextraRcMap *array) {
 
 static const void *
 lru_rc_map_retain(void *backend, size_t index) {
-	return cextra_rc_map_retain(backend, index);
+	return cx_rc_map_retain(backend, index);
 }
 
 static int
 lru_rc_map_release(void *backend, size_t index) {
-	return cextra_rc_map_release_index(backend, index);
+	return cx_rc_map_release_index(backend, index);
 }
 
-const struct CextraLruBackendImpl cextra_lru_rc_map = {
+const struct CxLruBackendImpl cx_lru_rc_map = {
 		.retain = lru_rc_map_retain,
 		.release = lru_rc_map_release,
 };

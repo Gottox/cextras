@@ -37,7 +37,7 @@
 #include <string.h>
 
 int
-cextra_buffer_init(struct CextraBuffer *buffer) {
+cx_buffer_init(struct CxBuffer *buffer) {
 	int rv = 0;
 
 	buffer->data = NULL;
@@ -47,21 +47,21 @@ cextra_buffer_init(struct CextraBuffer *buffer) {
 }
 
 int
-cextra_buffer_add_capacity(
-		struct CextraBuffer *buffer, uint8_t **additional_buffer,
+cx_buffer_add_capacity(
+		struct CxBuffer *buffer, uint8_t **additional_buffer,
 		size_t additional_size) {
 	const size_t buffer_size = buffer->size;
 	uint8_t *new_data;
 	size_t new_capacity;
 
-	if (CEXTRA_ADD_OVERFLOW(buffer_size, additional_size, &new_capacity)) {
-		return -CEXTRA_ERR_INTEGER_OVERFLOW;
+	if (CX_ADD_OVERFLOW(buffer_size, additional_size, &new_capacity)) {
+		return -CX_ERR_INTEGER_OVERFLOW;
 	}
 
 	if (new_capacity > buffer->capacity) {
 		new_data = realloc(buffer->data, new_capacity);
 		if (new_data == NULL) {
-			return -CEXTRA_ERR_ALLOC;
+			return -CX_ERR_ALLOC;
 		}
 		buffer->data = new_data;
 		buffer->capacity = new_capacity;
@@ -73,11 +73,11 @@ cextra_buffer_add_capacity(
 }
 
 int
-cextra_buffer_add_size(struct CextraBuffer *buffer, size_t additional_size) {
+cx_buffer_add_size(struct CxBuffer *buffer, size_t additional_size) {
 	const size_t buffer_size = buffer->size;
 	size_t new_size;
-	if (CEXTRA_ADD_OVERFLOW(buffer_size, additional_size, &new_size)) {
-		return -CEXTRA_ERR_INTEGER_OVERFLOW;
+	if (CX_ADD_OVERFLOW(buffer_size, additional_size, &new_size)) {
+		return -CX_ERR_INTEGER_OVERFLOW;
 	}
 
 	buffer->size = new_size;
@@ -85,8 +85,8 @@ cextra_buffer_add_size(struct CextraBuffer *buffer, size_t additional_size) {
 }
 
 int
-cextra_buffer_append(
-		struct CextraBuffer *buffer, const uint8_t *source, const size_t size) {
+cx_buffer_append(
+		struct CxBuffer *buffer, const uint8_t *source, const size_t size) {
 	int rv = 0;
 	uint8_t *additional_buffer;
 
@@ -94,42 +94,42 @@ cextra_buffer_append(
 		return 0;
 	}
 
-	rv = cextra_buffer_add_capacity(buffer, &additional_buffer, size);
+	rv = cx_buffer_add_capacity(buffer, &additional_buffer, size);
 	if (rv < 0) {
 		return rv;
 	}
 
 	memcpy(additional_buffer, source, size);
-	rv = cextra_buffer_add_size(buffer, size);
+	rv = cx_buffer_add_size(buffer, size);
 	return rv;
 }
 
 int
-cextra_buffer_move(struct CextraBuffer *buffer, struct CextraBuffer *source) {
-	cextra_buffer_cleanup(buffer);
+cx_buffer_move(struct CxBuffer *buffer, struct CxBuffer *source) {
+	cx_buffer_cleanup(buffer);
 
-	memcpy(buffer, source, sizeof(struct CextraBuffer));
-	memset(source, 0, sizeof(struct CextraBuffer));
+	memcpy(buffer, source, sizeof(struct CxBuffer));
+	memset(source, 0, sizeof(struct CxBuffer));
 
 	return 0;
 }
 
 void
-cextra__buffer_drain(struct CextraBuffer *buffer) {
+cx__buffer_drain(struct CxBuffer *buffer) {
 	buffer->size = 0;
 }
 
 const uint8_t *
-cextra_buffer_data(const struct CextraBuffer *buffer) {
+cx_buffer_data(const struct CxBuffer *buffer) {
 	return buffer->data;
 }
 size_t
-cextra_buffer_size(const struct CextraBuffer *buffer) {
+cx_buffer_size(const struct CxBuffer *buffer) {
 	return buffer->size;
 }
 
 int
-cextra_buffer_cleanup(struct CextraBuffer *buffer) {
+cx_buffer_cleanup(struct CxBuffer *buffer) {
 	free(buffer->data);
 	buffer->data = NULL;
 	buffer->size = buffer->capacity = 0;

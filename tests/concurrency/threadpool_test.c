@@ -31,13 +31,13 @@ thread_func_ackermann(void *arg) {
 
 static void
 test_init_cleanup(void) {
-	cextra_threadpool_t pool;
+	cx_threadpool_t pool;
 	int rv = 0;
 
-	pool = cextra_threadpool_init(2);
+	pool = cx_threadpool_init(2);
 	assert(rv == 0);
 
-	rv = cextra_threadpool_destroy(pool);
+	rv = cx_threadpool_destroy(pool);
 	assert(rv == 0);
 }
 
@@ -53,41 +53,41 @@ thread_func_inc(void *arg) {
 
 static void
 test_add_task(void) {
-	cextra_threadpool_t pool;
+	cx_threadpool_t pool;
 	int rv = 0;
 	atomic_uint counter = 0;
 
-	pool = cextra_threadpool_init(1);
+	pool = cx_threadpool_init(1);
 	assert(pool != NULL);
 
-	rv = cextra_threadpool_schedule(pool, 0, thread_func_inc, &counter);
+	rv = cx_threadpool_schedule(pool, 0, thread_func_inc, &counter);
 	assert(rv == 0);
 
 	while (atomic_load(&counter) != 1) {
 		usleep(1000);
 	}
 
-	rv = cextra_threadpool_destroy(pool);
+	rv = cx_threadpool_destroy(pool);
 	assert(rv == 0);
 }
 
 static void
 test_add_multiple_tasks_ackermann(void) {
-	cextra_threadpool_t pool;
+	cx_threadpool_t pool;
 	int rv = 0;
 	unsigned int ackermann_results[100] = {0};
 
-	pool = cextra_threadpool_init(0);
+	pool = cx_threadpool_init(0);
 	assert(pool != NULL);
 
 	for (size_t i = 0; i < LENGTH(ackermann_results); i++) {
 		ackermann_results[i] = i;
-		rv = cextra_threadpool_schedule(
+		rv = cx_threadpool_schedule(
 				pool, 0, thread_func_ackermann, &ackermann_results[i]);
 		assert(rv == 0);
 	}
 
-	rv = cextra_threadpool_destroy(pool);
+	rv = cx_threadpool_destroy(pool);
 	assert(rv == 0);
 
 	unsigned int expected = ackermann(2, 6);
@@ -98,19 +98,19 @@ test_add_multiple_tasks_ackermann(void) {
 
 static void
 test_add_multiple_tasks(void) {
-	cextra_threadpool_t pool;
+	cx_threadpool_t pool;
 	int rv = 0;
 	atomic_int counter[10000] = {0};
 
-	pool = cextra_threadpool_init(0);
+	pool = cx_threadpool_init(0);
 	assert(pool != NULL);
 
 	for (size_t i = 0; i < LENGTH(counter); i++) {
-		rv = cextra_threadpool_schedule(pool, 0, thread_func_inc, &counter[i]);
+		rv = cx_threadpool_schedule(pool, 0, thread_func_inc, &counter[i]);
 		assert(rv == 0);
 	}
 
-	rv = cextra_threadpool_destroy(pool);
+	rv = cx_threadpool_destroy(pool);
 	assert(rv == 0);
 
 	for (size_t i = 0; i < LENGTH(counter); i++) {

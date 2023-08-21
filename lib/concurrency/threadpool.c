@@ -32,29 +32,29 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-struct CextraThreadpool {
+struct CxThreadpool {
 	pthread_mutex_t mutex;
 	pthread_cond_t worker_cond;
 	pthread_cond_t controller_cond;
 	size_t nthreads;
 	size_t working;
-	struct CextraThreadpoolWorker *workers;
-	struct CextraThreadpoolTask *task_queue;
+	struct CxThreadpoolWorker *workers;
+	struct CxThreadpoolTask *task_queue;
 	bool run;
 };
 
-struct CextraThreadpoolWorker {
+struct CxThreadpoolWorker {
 	pthread_t tid;
 	int rv;
-	struct CextraThreadpool *threadpool;
+	struct CxThreadpool *threadpool;
 	bool idle;
 	uintptr_t group;
 };
 
-struct CextraThreadpoolTask {
-	cextra_threadpool_task_t work;
+struct CxThreadpoolTask {
+	cx_threadpool_task_t work;
 	void *data;
-	struct CextraThreadpoolTask *next;
+	struct CxThreadpoolTask *next;
 	uintptr_t group;
 };
 
@@ -65,12 +65,12 @@ cpu_count(void) {
 }
 
 static int
-worker_consume_single_task(struct CextraThreadpoolWorker *worker) {
-	struct CextraThreadpool *threadpool = worker->threadpool;
-	struct CextraThreadpoolTask *task = threadpool->task_queue;
+worker_consume_single_task(struct CxThreadpoolWorker *worker) {
+	struct CxThreadpool *threadpool = worker->threadpool;
+	struct CxThreadpoolTask *task = threadpool->task_queue;
 	threadpool->task_queue = task->next;
 
-	const cextra_threadpool_task_t work = task->work;
+	const cx_threadpool_task_t work = task->work;
 	void *data = task->data;
 	worker->idle = false;
 	worker->group = task->group;
@@ -86,10 +86,10 @@ worker_consume_single_task(struct CextraThreadpoolWorker *worker) {
 }
 
 static int
-worker_consume_tasks(struct CextraThreadpoolWorker *worker) {
+worker_consume_tasks(struct CxThreadpoolWorker *worker) {
 	int rv = 0;
-	struct CextraThreadpool *threadpool = worker->threadpool;
-	struct CextraThreadpoolTask *task = threadpool->task_queue;
+	struct CxThreadpool *threadpool = worker->threadpool;
+	struct CxThreadpoolTask *task = threadpool->task_queue;
 
 	if (task == NULL) {
 		goto out;
@@ -107,8 +107,8 @@ out:
 
 static void *
 worker_run(void *data) {
-	struct CextraThreadpoolWorker *worker = data;
-	struct CextraThreadpool *threadpool = worker->threadpool;
+	struct CxThreadpoolWorker *worker = data;
+	struct CxThreadpool *threadpool = worker->threadpool;
 	int rv = 0;
 
 	rv = pthread_mutex_lock(&threadpool->mutex);
@@ -132,9 +132,9 @@ out:
 	return NULL;
 }
 
-struct CextraThreadpool *
-cextra_threadpool_init(size_t nthreads) {
-	struct CextraThreadpool *threadpool;
+struct CxThreadpool *
+cx_threadpool_init(size_t nthreads) {
+	struct CxThreadpool *threadpool;
 	int rv = 0;
 	if (nthreads == 0) {
 		nthreads = cpu_count();
@@ -165,7 +165,7 @@ cextra_threadpool_init(size_t nthreads) {
 	}
 
 	for (size_t i = 0; i < nthreads; i++) {
-		struct CextraThreadpoolWorker *worker = &threadpool->workers[i];
+		struct CxThreadpoolWorker *worker = &threadpool->workers[i];
 		worker->threadpool = threadpool;
 		rv = pthread_create(&worker->tid, NULL, worker_run, worker);
 		if (rv < 0) {
@@ -183,12 +183,12 @@ out:
 }
 
 int
-cextra_threadpool_schedule(
-		struct CextraThreadpool *threadpool, uintptr_t group,
-		cextra_threadpool_task_t work, void *data) {
+cx_threadpool_schedule(
+		struct CxThreadpool *threadpool, uintptr_t group,
+		cx_threadpool_task_t work, void *data) {
 	int rv = 0;
-	struct CextraThreadpoolTask *task = NULL;
-	struct CextraThreadpoolTask *last = NULL;
+	struct CxThreadpoolTask *task = NULL;
+	struct CxThreadpoolTask *last = NULL;
 
 	task = calloc(1, sizeof(*task));
 	if (task == NULL) {
@@ -226,7 +226,7 @@ out:
 }
 
 int
-threadpool_wait(struct CextraThreadpool *threadpool, uintptr_t group) {
+threadpool_wait(struct CxThreadpool *threadpool, uintptr_t group) {
 	int rv = 0;
 
 	rv = pthread_mutex_lock(&threadpool->mutex);
@@ -237,7 +237,7 @@ threadpool_wait(struct CextraThreadpool *threadpool, uintptr_t group) {
 	while (true) {
 		bool found = false;
 		for (size_t i = 0; i < threadpool->nthreads; i++) {
-			struct CextraThreadpoolWorker *worker = &threadpool->workers[i];
+			struct CxThreadpoolWorker *worker = &threadpool->workers[i];
 			if (worker->group == group) {
 				found = true;
 				break;
@@ -246,7 +246,7 @@ threadpool_wait(struct CextraThreadpool *threadpool, uintptr_t group) {
 		if (found == false) {
 			break;
 		}
-		for (struct CextraThreadpoolTask *task = threadpool->task_queue;
+		for (struct CxThreadpoolTask *task = threadpool->task_queue;
 			 task != NULL; task = task->next) {
 			if (task->group == group) {
 				found = true;
@@ -266,7 +266,7 @@ out:
 }
 
 int
-cextra_threadpool_destroy(struct CextraThreadpool *threadpool) {
+cx_threadpool_destroy(struct CxThreadpool *threadpool) {
 	int rv = 0;
 	rv = pthread_mutex_lock(&threadpool->mutex);
 	if (rv < 0) {
@@ -278,7 +278,7 @@ cextra_threadpool_destroy(struct CextraThreadpool *threadpool) {
 	rv = pthread_mutex_unlock(&threadpool->mutex);
 
 	for (size_t i = 0; i < threadpool->nthreads; i++) {
-		struct CextraThreadpoolWorker *worker = &threadpool->workers[i];
+		struct CxThreadpoolWorker *worker = &threadpool->workers[i];
 
 		rv = pthread_join(worker->tid, NULL);
 		if (rv < 0) {
@@ -291,7 +291,7 @@ cextra_threadpool_destroy(struct CextraThreadpool *threadpool) {
 	pthread_mutex_destroy(&threadpool->mutex);
 
 	while (threadpool->task_queue != NULL) {
-		struct CextraThreadpoolTask *task = threadpool->task_queue;
+		struct CxThreadpoolTask *task = threadpool->task_queue;
 		threadpool->task_queue = task->next;
 		free(task);
 	}

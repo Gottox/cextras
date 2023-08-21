@@ -14,7 +14,6 @@ threads_dep = dependency('threads', required: get_option('threads'))
 subdir('lib')
 subdir('include')
 
-
 cextras_dep = declare_dependency(
     include_directories: include_directories('include'),
     link_with: cextras,

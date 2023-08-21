@@ -51,38 +51,38 @@ rc_map_deinit(void *data) {
 static void
 init_rc_map(void) {
 	int rv;
-	struct CextraRcMap map;
+	struct CxRcMap map;
 
-	rv = cextra_rc_map_init(&map, 128, sizeof(uint8_t), rc_map_deinit);
+	rv = cx_rc_map_init(&map, 128, sizeof(uint8_t), rc_map_deinit);
 	assert(rv == 0);
 
-	rv = cextra_rc_map_cleanup(&map);
+	rv = cx_rc_map_cleanup(&map);
 	assert(rv == 0);
 }
 
 static void
 set_and_get_element(void) {
 	int rv;
-	struct CextraRcMap map;
+	struct CxRcMap map;
 	uint8_t data = 23;
 
-	rv = cextra_rc_map_init(&map, 128, sizeof(uint8_t), rc_map_deinit);
+	rv = cx_rc_map_init(&map, 128, sizeof(uint8_t), rc_map_deinit);
 	assert(rv == 0);
 
 	size_t index = 42;
-	const uint8_t *set_ptr = cextra_rc_map_set(&map, index, &data);
+	const uint8_t *set_ptr = cx_rc_map_set(&map, index, &data);
 	assert(rv == 0);
 	assert(set_ptr != &data);
 
-	const uint8_t *get_ptr = cextra_rc_map_retain(&map, index);
+	const uint8_t *get_ptr = cx_rc_map_retain(&map, index);
 	assert(rv == 0);
 	assert(get_ptr != &data);
 	assert(get_ptr == get_ptr);
-	cextra_rc_map_release(&map, get_ptr);
+	cx_rc_map_release(&map, get_ptr);
 
-	cextra_rc_map_release(&map, set_ptr);
+	cx_rc_map_release(&map, set_ptr);
 
-	rv = cextra_rc_map_cleanup(&map);
+	rv = cx_rc_map_cleanup(&map);
 	assert(rv == 0);
 }
 

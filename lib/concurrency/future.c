@@ -32,16 +32,16 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-struct CextraFuture {
+struct CxFuture {
 	pthread_mutex_t mutex;
 	pthread_cond_t cond;
 	void *in_value;
 	void *out_value;
 };
 
-struct CextraFuture *
-cextra_future_init(void *in_value) {
-	struct CextraFuture *future = calloc(1, sizeof(struct CextraFuture));
+struct CxFuture *
+cx_future_init(void *in_value) {
+	struct CxFuture *future = calloc(1, sizeof(struct CxFuture));
 	if (future == NULL)
 		return NULL;
 	future->in_value = in_value;
@@ -51,12 +51,12 @@ cextra_future_init(void *in_value) {
 }
 
 void *
-cextra_future_get_in_value(struct CextraFuture *future) {
+cx_future_get_in_value(struct CxFuture *future) {
 	return future->in_value;
 }
 
 void *
-cextra_future_wait(struct CextraFuture *future) {
+cx_future_wait(struct CxFuture *future) {
 	void *out_value = NULL;
 	pthread_mutex_lock(&future->mutex);
 	while (future->out_value == NULL)
@@ -67,7 +67,7 @@ cextra_future_wait(struct CextraFuture *future) {
 }
 
 int
-cextra_future_resolve(struct CextraFuture *future, void *value) {
+cx_future_resolve(struct CxFuture *future, void *value) {
 	int rv = 0;
 	pthread_mutex_lock(&future->mutex);
 	if (future->out_value != NULL) {
@@ -83,7 +83,7 @@ out:
 }
 
 int
-cextra_future_destroy(struct CextraFuture *future) {
+cx_future_destroy(struct CxFuture *future) {
 	pthread_mutex_destroy(&future->mutex);
 	pthread_cond_destroy(&future->cond);
 	free(future);

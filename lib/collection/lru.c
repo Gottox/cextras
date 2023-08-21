@@ -43,7 +43,7 @@
 #	include <stdio.h>
 
 static void
-debug_print(const struct CextraLru *lru, const char msg, sqsh_index_t ring_index) {
+debug_print(const struct CxLru *lru, const char msg, sqsh_index_t ring_index) {
 	sqsh_index_t backend_index = lru->items[ring_index];
 
 	fprintf(stderr, "%clru %lu: ", msg, ring_index);
@@ -62,9 +62,9 @@ debug_print(const struct CextraLru *lru, const char msg, sqsh_index_t ring_index
 #endif
 
 int
-cextra_lru_init(
-		struct CextraLru *lru, size_t size,
-		const struct CextraLruBackendImpl *impl, void *backend) {
+cx_lru_init(
+		struct CxLru *lru, size_t size, const struct CxLruBackendImpl *impl,
+		void *backend) {
 	memset(lru, 0, sizeof(*lru));
 	lru->impl = impl;
 	lru->backend = backend;
@@ -75,7 +75,7 @@ cextra_lru_init(
 
 	lru->items = calloc(size, sizeof(size_t));
 	if (lru->items == NULL) {
-		return -CEXTRA_ERR_ALLOC;
+		return -CX_ERR_ALLOC;
 	}
 	for (size_t i = 0; i < lru->size; i++) {
 		lru->items[i] = EMPTY_MARKER;
@@ -86,7 +86,7 @@ cextra_lru_init(
 }
 
 int
-cextra_lru_touch(struct CextraLru *lru, size_t index) {
+cx_lru_touch(struct CxLru *lru, size_t index) {
 	if (lru->size == 0) {
 		return 0;
 	}
@@ -94,7 +94,7 @@ cextra_lru_touch(struct CextraLru *lru, size_t index) {
 	size_t ring_index = lru->ring_index;
 	size_t size = lru->size;
 	void *backend = lru->backend;
-	const struct CextraLruBackendImpl *impl = lru->impl;
+	const struct CxLruBackendImpl *impl = lru->impl;
 	size_t last_index = lru->items[ring_index];
 
 	ring_index = (ring_index + 1) % size;
@@ -120,8 +120,8 @@ cextra_lru_touch(struct CextraLru *lru, size_t index) {
 }
 
 int
-cextra_lru_cleanup(struct CextraLru *lru) {
-	const struct CextraLruBackendImpl *impl = lru->impl;
+cx_lru_cleanup(struct CxLru *lru) {
+	const struct CxLruBackendImpl *impl = lru->impl;
 
 	for (size_t i = 0; i < lru->size; i++) {
 		size_t index = lru->items[i];

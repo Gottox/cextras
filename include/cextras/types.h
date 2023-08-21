@@ -40,7 +40,7 @@
 extern "C" {
 #endif
 
-typedef size_t cextra_index_t;
+typedef size_t cx_index_t;
 
 #ifdef __cplusplus
 }

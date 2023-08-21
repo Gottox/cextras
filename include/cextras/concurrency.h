@@ -49,17 +49,17 @@ extern "C" {
 /**
  * @brief A function running a thread pool task.
  */
-typedef struct CextraThreadpool *cextra_threadpool_t;
+typedef struct CxThreadpool *cx_threadpool_t;
 
 /**
  * @brief A function running a thread pool task.
  */
-typedef void (*cextra_threadpool_task_t)(void *);
+typedef void (*cx_threadpool_task_t)(void *);
 
 /**
  * @brief Initializes a threadpool.
  */
-cextra_threadpool_t cextra_threadpool_init(size_t num_threads);
+cx_threadpool_t cx_threadpool_init(size_t num_threads);
 
 /**
  * @brief Adds a task to the threadpool.
@@ -68,20 +68,20 @@ cextra_threadpool_t cextra_threadpool_init(size_t num_threads);
  * @param task The task function to run the task
  * @param arg The argument to the task function.
  */
-int cextra_threadpool_schedule(
-		cextra_threadpool_t threadpool, uintptr_t group,
-		cextra_threadpool_task_t task, void *arg);
+int cx_threadpool_schedule(
+		cx_threadpool_t threadpool, uintptr_t group, cx_threadpool_task_t task,
+		void *arg);
 
 /**
  * @brief Cleans up a threadpool.
  */
-int cextra_threadpool_destroy(cextra_threadpool_t threadpool);
+int cx_threadpool_destroy(cx_threadpool_t threadpool);
 
 /***************************************
  * concurrency/future.c
  */
 
-typedef struct CextraFuture *cextra_future_t;
+typedef struct CxFuture *cx_future_t;
 
 /**
  * @brief Initializes a future.
@@ -90,7 +90,7 @@ typedef struct CextraFuture *cextra_future_t;
  *
  * @return The initialized future.
  */
-cextra_future_t cextra_future_init(void *in_value);
+cx_future_t cx_future_init(void *in_value);
 
 /**
  * @brief Gets the value of a future. If the future is not ready, this function
@@ -100,7 +100,7 @@ cextra_future_t cextra_future_init(void *in_value);
  *
  * @return The value of the future.
  */
-void *cextra_future_get_in_value(cextra_future_t future);
+void *cx_future_get_in_value(cx_future_t future);
 
 /**
  * @brief Gets the value of a future. If the future is not ready, this function
@@ -110,7 +110,7 @@ void *cextra_future_get_in_value(cextra_future_t future);
  *
  * @return The value of the future.
  */
-void *cextra_future_wait(cextra_future_t future);
+void *cx_future_wait(cx_future_t future);
 
 /**
  * @brief resolves a future.
@@ -119,7 +119,7 @@ void *cextra_future_wait(cextra_future_t future);
  *
  * @return 0 on success, -1 on error.
  */
-int cextra_future_resolve(cextra_future_t future, void *value);
+int cx_future_resolve(cx_future_t future, void *value);
 
 /**
  * @brief Cleans up a future.
@@ -128,7 +128,7 @@ int cextra_future_resolve(cextra_future_t future, void *value);
  *
  * @return 0 on success, -1 on error.
  */
-int cextra_future_destroy(cextra_future_t future);
+int cx_future_destroy(cx_future_t future);
 
 #ifdef __cplusplus
 }

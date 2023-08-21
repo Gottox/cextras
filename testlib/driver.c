@@ -76,8 +76,8 @@ run_test_direct(const struct TestlibTest *test) {
 		fprintf(stderr, "%s -n '%s'\n DISABLED\n", program_name, test->name);
 	} else {
 		clock_t time = clock();
-		fprintf(stderr, "%s%s -n '%s'%s\n", color_reset, program_name, test->name,
-				color_status);
+		fprintf(stderr, "%s%s -n '%s'%s\n", color_reset, program_name,
+				test->name, color_status);
 		test->func();
 		fprintf(stderr, "%s finished in %.3lfms\n", color_reset,
 				(double)(clock() - time) * 1000.0 / (double)CLOCKS_PER_SEC);
@@ -132,7 +132,8 @@ main(int argc, char *argv[]) {
 			}
 			exit(EXIT_SUCCESS);
 		default:
-			fprintf(stderr, "Usage: %s [-c always|never|auto] [-e] [-l] [test...]\n",
+			fprintf(stderr,
+					"Usage: %s [-c always|never|auto] [-e] [-l] [test...]\n",
 					program_name);
 			exit(EXIT_FAILURE);
 		}
