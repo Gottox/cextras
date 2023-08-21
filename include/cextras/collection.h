@@ -176,6 +176,16 @@ size_t cx_buffer_size(const struct CxBuffer *buffer);
 
 /**
  * @internal
+ * @memberof SqshBuffer
+ * @brief cleans up the buffer and returns the data.
+ * @param[in,out] buffer The SqshBuffer to unwrap.
+ *
+ * @return 0 on success, less than 0 on error.
+ */
+uint8_t *cx_buffer_unwrap(struct CxBuffer *buffer);
+
+/**
+ * @internal
  * @memberof CxBuffer
  * @brief cx_buffer_cleanup frees the memory managed by the CxBuffer.
  * @param[in,out] buffer The CxBuffer to cleanup.

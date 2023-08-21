@@ -128,6 +128,15 @@ cx_buffer_size(const struct CxBuffer *buffer) {
 	return buffer->size;
 }
 
+uint8_t *
+cx_buffer_unwrap(struct CxBuffer *buffer) {
+	uint8_t *data = buffer->data;
+	buffer->data = NULL;
+	cx_buffer_cleanup(buffer);
+
+	return data;
+}
+
 int
 cx_buffer_cleanup(struct CxBuffer *buffer) {
 	free(buffer->data);
