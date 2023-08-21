@@ -144,6 +144,18 @@ cextra_buffer_move(struct CextraBuffer *buffer, struct CextraBuffer *source);
 
 /**
  * @internal
+ * @memberof SqshBuffer
+ * @brief resets the buffer size to 0.
+ *
+ * This does not free the memory allocated by the buffer so that
+ * the buffer can be reused.
+ *
+ * @param[in,out] buffer The SqshBuffer to drain.
+ */
+void sqsh__buffer_drain(struct CextraBuffer *buffer);
+
+/**
+ * @internal
  * @memberof CextraBuffer
  * @brief cextra_buffer_data returns the data of the CextraBuffer.
  * @param[in] buffer The CextraBuffer to get the data from.

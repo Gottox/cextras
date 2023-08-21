@@ -114,6 +114,11 @@ cextra_buffer_move(struct CextraBuffer *buffer, struct CextraBuffer *source) {
 	return 0;
 }
 
+void
+cextra__buffer_drain(struct CextraBuffer *buffer) {
+	buffer->size = 0;
+}
+
 const uint8_t *
 cextra_buffer_data(const struct CextraBuffer *buffer) {
 	return buffer->data;
