@@ -115,7 +115,7 @@ cx_buffer_move(struct CxBuffer *buffer, struct CxBuffer *source) {
 }
 
 void
-cx__buffer_drain(struct CxBuffer *buffer) {
+cx_buffer_drain(struct CxBuffer *buffer) {
 	buffer->size = 0;
 }
 
