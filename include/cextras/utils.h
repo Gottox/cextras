@@ -28,25 +28,25 @@
 
 /**
  * @author       Enno Boland (mail@eboland.de)
- * @file         error.h
+ * @file         utils.h
  */
 
-#ifndef CEXTRA_ERROR_H
-#define CEXTRA_ERROR_H
+#ifndef CEXTRA_UTILS_H
+#define CEXTRA_UTILS_H
+
+#include "macro.h"
+#include "types.h"
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-enum CxError {
-	CX_SUCCESS,
-	CX_ERR_INTEGER_OVERFLOW,
-	CX_ERR_BUFFER_OVERFLOW,
-	CX_ERR_NOT_FOUND,
-	CX_ERR_ALLOC,
-};
+CX_NO_UNUSED void *cx_memdup(const void *source, size_t size);
 
 #ifdef __cplusplus
 }
 #endif
-#endif /* CEXTRA_ERROR_H */
+#endif /* CEXTRA_UTILS_H */

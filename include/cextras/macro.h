@@ -28,7 +28,7 @@
 
 /**
  * @author       Enno Boland (mail@eboland.de)
- * @file         sqsh_primitive_private.h
+ * @file         macro.h
  */
 
 #ifndef CEXTRA_MACRO_H

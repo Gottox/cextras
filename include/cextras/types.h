@@ -28,7 +28,7 @@
 
 /**
  * @author       Enno Boland (mail@eboland.de)
- * @file         sqsh_primitive_private.h
+ * @file         types.h
  */
 
 #ifndef CEXTRA_TYPES_H
