@@ -71,7 +71,6 @@ cx_collect(char ***target, cx_collector_next_t next, void *iterator) {
 	struct CxBuffer list = {0};
 	struct CxBuffer list_values = {0};
 	size_t elements = 0;
-	char **result = NULL;
 
 	rv = cx_buffer_init(&list);
 	if (rv < 0) {
@@ -108,11 +107,11 @@ cx_collect(char ***target, cx_collector_next_t next, void *iterator) {
 		goto out;
 	}
 
-	result = (char **)cx_buffer_unwrap(&list);
+	uintptr_t *result = (uintptr_t *)cx_buffer_unwrap(&list);
 	for (cx_index_t i = 0; i < elements; i++) {
 		result[i] += base_size + (uintptr_t)result;
 	}
-	*target = result;
+	*target = (char **)result;
 
 out:
 	cx_buffer_cleanup(&list);
