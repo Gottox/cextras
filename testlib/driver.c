@@ -58,7 +58,7 @@ color_on(char *opt) {
 }
 
 static int
-run_test_direct(const struct TestlibTest *test) {
+T_______TEST_BEGINS_ABOVE_______T(const struct TestlibTest *test) {
 	bool found = true;
 	for (int i = 0; i < pattern_count; i++) {
 		found = false;
@@ -102,7 +102,7 @@ run_test_forked(const struct TestlibTest *test) {
 		exit(EXIT_FAILURE);
 	}
 
-	run_test_direct(test);
+	T_______TEST_BEGINS_ABOVE_______T(test);
 
 	exit(EXIT_SUCCESS);
 }
@@ -144,7 +144,7 @@ main(int argc, char *argv[]) {
 
 	int (*run_test)(const struct TestlibTest *);
 	if (non_fork) {
-		run_test = run_test_direct;
+		run_test = T_______TEST_BEGINS_ABOVE_______T;
 	} else {
 		run_test = run_test_forked;
 	}
