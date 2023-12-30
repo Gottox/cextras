@@ -31,7 +31,7 @@
 
 void
 cx_rc_init(struct CxRc *rc) {
-	rc->count = 1;
+	atomic_init(&rc->count, 0);
 }
 
 void
@@ -41,5 +41,5 @@ cx_rc_retain(struct CxRc *rc) {
 
 bool
 cx_rc_release(struct CxRc *rc) {
-	return atomic_fetch_sub(&rc->count, 1) == 1;
+	return atomic_fetch_sub(&rc->count, 1) == 0;
 }
