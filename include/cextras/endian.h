@@ -31,27 +31,48 @@
  * @file         collection.h
  */
 
-#ifndef CEXTRA_ENDIAN_COMPAT_H
-#define CEXTRA_ENDIAN_COMPAT_H
+#ifndef CEXTRA_ENDIAN_H
+#define CEXTRA_ENDIAN_H
 
+#define _DEFAULT_SOURCE
+
+#include <stdint.h>
 #if defined(__APPLE__)
 #	include <libkern/OSByteOrder.h>
-#	define be16toh(x) OSSwapBigToHostInt16(x)
-#	define be32toh(x) OSSwapBigToHostInt32(x)
-#	define be64toh(x) OSSwapBigToHostInt64(x)
-#	define htobe16(x) OSSwapHostToBigInt16(x)
-#	define htobe32(x) OSSwapHostToBigInt32(x)
-#	define htobe64(x) OSSwapHostToBigInt64(x)
-#	define htole16(x) OSSwapHostToLittleInt16(x)
-#	define htole32(x) OSSwapHostToLittleInt32(x)
-#	define htole64(x) OSSwapHostToLittleInt64(x)
-#	define le16toh(x) OSSwapLittleToHostInt16(x)
-#	define le32toh(x) OSSwapLittleToHostInt32(x)
-#	define le64toh(x) OSSwapLittleToHostInt64(x)
-#elif defined(__FreeBSD__)
-#	include <sys/endian.h>
+
+#	define CX_CPU_2_LE16(x) OSSwapHostToLittleInt16(x)
+#	define CX_CPU_2_LE32(x) OSSwapHostToLittleInt32(x)
+#	define CX_CPU_2_LE64(x) OSSwapHostToLittleInt64(x)
+#	define CX_LE_2_CPU16(x) OSSwapLittleToHostInt16(x)
+#	define CX_LE_2_CPU32(x) OSSwapLittleToHostInt32(x)
+#	define CX_LE_2_CPU64(x) OSSwapLittleToHostInt64(x)
+#	define CX_CPU_2_BE16(x) OSSwapHostToBigInt16(x)
+#	define CX_CPU_2_BE32(x) OSSwapHostToBigInt32(x)
+#	define CX_CPU_2_BE64(x) OSSwapHostToBigInt64(x)
+#	define CX_BE_2_CPU16(x) OSSwapBigToHostInt16(x)
+#	define CX_BE_2_CPU32(x) OSSwapBigToHostInt32(x)
+#	define CX_BE_2_CPU64(x) OSSwapBigToHostInt64(x)
+
 #else
-#	include <endian.h>
+#	if defined(__FreeBSD__)
+#		include <sys/endian.h>
+#	else
+#		include <endian.h>
+#	endif
+
+#	define CX_CPU_2_LE16(x) htole16(x)
+#	define CX_CPU_2_LE32(x) htole32(x)
+#	define CX_CPU_2_LE64(x) htole64(x)
+#	define CX_LE_2_CPU16(x) le16toh(x)
+#	define CX_LE_2_CPU32(x) le32toh(x)
+#	define CX_LE_2_CPU64(x) le64toh(x)
+#	define CX_CPU_2_BE16(x) htobe16(x)
+#	define CX_CPU_2_BE32(x) htobe32(x)
+#	define CX_CPU_2_BE64(x) htobe64(x)
+#	define CX_BE_2_CPU16(x) be16toh(x)
+#	define CX_BE_2_CPU32(x) be32toh(x)
+#	define CX_BE_2_CPU64(x) be64toh(x)
+
 #endif
 
-#endif /* CEXTRA_ENDIAN_COMPAT_H */
+#endif /* CEXTRA_ENDIAN_H */

@@ -1,7 +1,7 @@
 cextra_headers = [
     'cextras/collection.h',
     'cextras/concurrency.h',
-    'cextras/endian_compat.h',
+    'cextras/endian.h',
     'cextras/error.h',
     'cextras/macro.h',
     'cextras/types.h',

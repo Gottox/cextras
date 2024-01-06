@@ -1,6 +1,7 @@
 add_languages('cpp', native: false)
 
 tests = [
+    'endian.c',
     'testlib.c',
     'testlib.cpp',
     'concurrency/threadpool_test.c',
