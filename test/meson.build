@@ -13,6 +13,7 @@ tests = [
     'collection/rc_map_test.c',
     'memory/rc.c',
     'memory/utils.c',
+    'unicode.c',
 ]
 
 foreach test : tests

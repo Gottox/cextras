@@ -2,8 +2,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#define HEADER "static const uint8_t %s_len_map[] = {\n"
-
+#define HEADER \
+	"#include <stdint.h>\n" \
+	"const uint8_t %s_len_map[] = {\n"
 #define FOOTER "};\n"
 
 int

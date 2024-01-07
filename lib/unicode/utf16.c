@@ -1,6 +1,6 @@
 #include "../../include/cextras/unicode.h"
-#include <utf16_table.h>
-#include <utf8_table.h>
+extern const uint8_t utf16_len_map[256];
+extern const uint8_t utf8_len_map[256];
 
 ssize_t
 cx_utf8_16len(const uint8_t *str, size_t length) {
