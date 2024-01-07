@@ -34,9 +34,10 @@
 #ifndef CEXTRA_ENDIAN_H
 #define CEXTRA_ENDIAN_H
 
-#define _DEFAULT_SOURCE
+#ifndef _DEFAULT_SOURCE
+#	define _DEFAULT_SOURCE
+#endif
 
-#include <stdint.h>
 #if defined(__APPLE__)
 #	include <libkern/OSByteOrder.h>
 
