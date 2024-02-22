@@ -110,9 +110,16 @@ run_test_forked(const struct TestlibTest *test) {
 int
 main(int argc, char *argv[]) {
 	bool non_fork = false;
-	strncpy(program_name, argv[0], sizeof(program_name) - 1);
 	int opt;
 	int rv = 0;
+
+	if (argc < 1) {
+		fprintf(stderr,
+				"Usage: %s [-c always|never|auto] [-e] [-l] [test...]\n",
+				argv[0]);
+		exit(EXIT_FAILURE);
+	}
+	strncpy(program_name, argv[0], sizeof(program_name) - 1);
 
 	color_on("auto");
 	while ((opt = getopt(argc, argv, "nlcv:")) != -1) {
