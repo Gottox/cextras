@@ -43,6 +43,36 @@ extern "C" {
 #include <stdbool.h>
 #include <stdlib.h>
 
+#define CX_NEW_IMPL(init, type, ...) \
+	{ \
+		int rv = 0; \
+		type *obj = calloc(1, sizeof(type)); \
+		if (obj == NULL) { \
+			rv = -SQSH_ERROR_MALLOC_FAILED; \
+		} else { \
+			rv = init(obj, __VA_ARGS__); \
+			if (rv < 0) { \
+				free(obj); \
+				obj = NULL; \
+			} \
+		} \
+		if (err != NULL) { \
+			*err = rv; \
+		} \
+		return obj; \
+	}
+
+#define CX_FREE_IMPL(cleanup, obj) \
+	{ \
+		if (obj == NULL) { \
+			return 0; \
+		} else { \
+			int rv = cleanup(obj); \
+			free(obj); \
+			return rv; \
+		} \
+	}
+
 /***************************************
  * memory/rc.c
  */
