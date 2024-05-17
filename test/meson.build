@@ -13,6 +13,7 @@ tests = [
     'collection/rc_map_test.c',
     'memory/rc.c',
     'memory/utils.c',
+    'memory/prealloc_pool.c',
     'unicode.c',
 ]
 

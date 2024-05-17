@@ -91,6 +91,25 @@ CX_NO_UNUSED bool cx_rc_release(struct CxRc *rc);
 
 CX_NO_UNUSED void *cx_memdup(const void *source, size_t size);
 
+/***************************************
+ * memory/prealloc_pool.c
+ */
+
+struct CxPreallocPool {
+	void **pools;
+	size_t element_size;
+	size_t next_index;
+	void *reuse_pool;
+};
+
+void cx_prealloc_pool_init(struct CxPreallocPool *pool, size_t element_size);
+
+void *cx_prealloc_pool_get(struct CxPreallocPool *pool);
+
+void cx_prealloc_pool_recycle(struct CxPreallocPool *pool, void *element);
+
+void cx_prealloc_pool_cleanup(struct CxPreallocPool *pool);
+
 #ifdef __cplusplus
 }
 #endif

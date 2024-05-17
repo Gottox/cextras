@@ -47,6 +47,8 @@ extern "C" {
 #define CX_MIN(a, b) ((a) < (b) ? (a) : (b))
 #define CX_MAX(a, b) ((a) > (b) ? (a) : (b))
 
+#define CX_DIVIDE_CEIL(x, y) ((x) / (y) + !!((x) % (y)))
+
 #ifdef __cplusplus
 }
 #endif
