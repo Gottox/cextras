@@ -11,6 +11,7 @@ tests = [
     'collection/lru_test.c',
     'collection/rc_hash_map_test.c',
     'collection/rc_map_test.c',
+    'collection/radix_map.c',
     'memory/rc.c',
     'memory/utils.c',
     'memory/prealloc_pool.c',

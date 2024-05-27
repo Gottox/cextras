@@ -42,7 +42,7 @@
 #define MAX_COLLISIONS 5
 
 struct CxRcHashMapInner {
-	sqsh_rc_map_key_t *keys;
+	uint64_t *keys;
 	struct CxRcMap values;
 	size_t count;
 };
@@ -58,7 +58,7 @@ djb2_hash(const void *data, const size_t size) {
 }
 
 static size_t
-key_to_index(const sqsh_rc_map_key_t key, const size_t size) {
+key_to_index(const uint64_t key, const size_t size) {
 	size_t hash = djb2_hash(&key, sizeof(uint64_t));
 
 	/* reserve the lower COLLISION_RESERVE_BITS bits for collisions. */
@@ -83,7 +83,7 @@ extend_hash_map(struct CxRcHashMap *hash_map) {
 	hash_map->hash_maps = realloc(hash_map->hash_maps, new_size);
 	hash_maps = &hash_map->hash_maps[last_index];
 
-	hash_maps->keys = calloc(hash_map->map_size, sizeof(sqsh_rc_map_key_t));
+	hash_maps->keys = calloc(hash_map->map_size, sizeof(uint64_t));
 	if (hash_maps->keys == NULL) {
 		return -CX_ERR_ALLOC;
 	}
@@ -107,14 +107,13 @@ cx_rc_hash_map_init(
 }
 
 const void *
-cx_rc_hash_map_put(
-		struct CxRcHashMap *hash_map, sqsh_rc_map_key_t key, void *data) {
+cx_rc_hash_map_put(struct CxRcHashMap *hash_map, uint64_t key, void *data) {
 	int rv = 0;
 	const size_t size = cx_rc_map_size(&hash_map->hash_maps[0].values);
 	const size_t orig_index = key_to_index(key, size);
 	size_t index = orig_index;
 	struct CxRcMap *values = NULL;
-	sqsh_rc_map_key_t *keys = NULL;
+	uint64_t *keys = NULL;
 
 	for (size_t i = 0; i < size && i < MAX_COLLISIONS; i++, index++) {
 		index = index % size;
@@ -148,7 +147,7 @@ cx_rc_hash_map_size(const struct CxRcHashMap *hash_map) {
 }
 
 const void *
-cx_rc_hash_map_retain(struct CxRcHashMap *hash_map, sqsh_rc_map_key_t key) {
+cx_rc_hash_map_retain(struct CxRcHashMap *hash_map, uint64_t key) {
 	const size_t size = cx_rc_map_size(&hash_map->hash_maps[0].values);
 	size_t index = key_to_index(key, size);
 
@@ -157,7 +156,7 @@ cx_rc_hash_map_retain(struct CxRcHashMap *hash_map, sqsh_rc_map_key_t key) {
 
 		for (size_t j = 0; j < hash_map->hash_map_count; j++) {
 			struct CxRcMap *values = &hash_map->hash_maps[j].values;
-			sqsh_rc_map_key_t *keys = hash_map->hash_maps[j].keys;
+			uint64_t *keys = hash_map->hash_maps[j].keys;
 			if (keys[index] == key) {
 				return cx_rc_map_retain(values, index);
 			}
@@ -181,8 +180,7 @@ cx_rc_hash_map_release(struct CxRcHashMap *hash_map, const void *element) {
 }
 
 int
-cx_rc_hash_map_release_key(
-		struct CxRcHashMap *hash_map, sqsh_rc_map_key_t key) {
+cx_rc_hash_map_release_key(struct CxRcHashMap *hash_map, uint64_t key) {
 	const size_t size = cx_rc_map_size(&hash_map->hash_maps[0].values);
 	size_t index = key_to_index(key, size);
 
@@ -191,7 +189,7 @@ cx_rc_hash_map_release_key(
 
 		for (size_t j = 0; j < hash_map->hash_map_count; j++) {
 			struct CxRcMap *values = &hash_map->hash_maps[j].values;
-			sqsh_rc_map_key_t *keys = hash_map->hash_maps[j].keys;
+			uint64_t *keys = hash_map->hash_maps[j].keys;
 			if (keys[index] == key) {
 				return cx_rc_map_release_index(values, index);
 			}
@@ -213,12 +211,12 @@ cx_rc_hash_map_cleanup(struct CxRcHashMap *hash_map) {
 }
 
 static const void *
-lru_rc_hash_map_retain(void *backend, size_t index) {
+lru_rc_hash_map_retain(void *backend, uint64_t index) {
 	return cx_rc_hash_map_retain(backend, index);
 }
 
 static int
-lru_rc_hash_map_release(void *backend, size_t index) {
+lru_rc_hash_map_release(void *backend, uint64_t index) {
 	return cx_rc_hash_map_release_key(backend, index);
 }
 

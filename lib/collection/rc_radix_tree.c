@@ -28,96 +28,73 @@
 
 /**
  * @author       Enno Boland (mail@eboland.de)
- * @file         threadpool.h
+ * @file         rc_map.c
  */
 
-#ifndef MEMORY_H
+#include "../../include/cextras/collection.h"
 
-#define MEMORY_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include "macro.h"
-#include <stdbool.h>
-#include <stdlib.h>
-
-#define CX_NEW_IMPL(init, type, malloc_err, ...) \
-	{ \
-		int rv = 0; \
-		type *obj = calloc(1, sizeof(type)); \
-		if (obj == NULL) { \
-			rv = (malloc_err); \
-		} else { \
-			rv = init(obj, __VA_ARGS__); \
-			if (rv < 0) { \
-				free(obj); \
-				obj = NULL; \
-			} \
-		} \
-		if (err != NULL) { \
-			*err = rv; \
-		} \
-		return obj; \
-	}
-
-#define CX_FREE_IMPL(cleanup, obj) \
-	{ \
-		if (obj == NULL) { \
-			return 0; \
-		} else { \
-			int rv = cleanup(obj); \
-			free(obj); \
-			return rv; \
-		} \
-	}
-
-/***************************************
- * memory/rc.c
- */
-
-struct CxRc {
-	_Atomic(unsigned int) count;
-};
-
-void cx_rc_init(struct CxRc *rc);
-void cx_rc_retain(struct CxRc *rc);
-CX_NO_UNUSED bool cx_rc_release(struct CxRc *rc);
-
-/***************************************
- * memory/utils.c
- */
-
-CX_NO_UNUSED void *cx_memdup(const void *source, size_t size);
-
-/***************************************
- * memory/prealloc_pool.c
- */
-
-struct CxPreallocPool {
-	char **pools;
-
-	size_t chunk_size;
-	size_t element_size;
-	size_t next_offset;
-	size_t pool_count;
-	char *current_pool;
-	void *reuse_pool;
-};
-
-void cx_prealloc_pool_init(struct CxPreallocPool *pool, size_t element_size);
-
-void cx_prealloc_pool_init2(
-		struct CxPreallocPool *pool, size_t chunk_size, size_t element_size);
-
-void *cx_prealloc_pool_get(struct CxPreallocPool *pool);
-
-void cx_prealloc_pool_recycle(struct CxPreallocPool *pool, void *element);
-
-void cx_prealloc_pool_cleanup(struct CxPreallocPool *pool);
-
-#ifdef __cplusplus
+void
+cx_rc_radix_tree_init(
+		struct CxRcRadixTree *map, sqsh_rc_map_cleanup_t cleanup,
+		size_t element_size) {
+	map->cleanup = cleanup;
+	cx_radix_tree_init(&map->inner, element_size + sizeof(struct CxRc));
 }
-#endif
-#endif // MEMORY_H
+
+const void *
+cx_rc_radix_tree_put(
+		struct CxRcRadixTree *map, uint64_t key, const void *value) {
+	struct CxRc *rc = cx_radix_tree_put(&map->inner, key, value);
+	if (!rc) {
+		return NULL;
+	}
+
+	cx_rc_init(rc);
+
+	return (void *)&rc[1];
+}
+
+int
+cx_rc_radix_tree_release(struct CxRcRadixTree *map, uint64_t key) {
+	int rv = 0;
+	struct CxRc *rc = cx_radix_tree_get(&map->inner, key);
+	if (!rc) {
+		return -1;
+	}
+
+	if (cx_rc_release(rc)) {
+		rv = cx_radix_tree_delete(&map->inner, key);
+	}
+	return rv;
+}
+
+const void *
+cx_rc_radix_tree_retain(struct CxRcRadixTree *map, uint64_t key) {
+	struct CxRc *rc = cx_radix_tree_get(&map->inner, key);
+	if (!rc) {
+		return NULL;
+	}
+
+	cx_rc_retain(rc);
+	return (void *)&rc[1];
+}
+
+void
+cx_rc_radix_tree_cleanup(struct CxRcRadixTree *map) {
+	cx_radix_tree_cleanup(&map->inner);
+}
+
+static const void *
+lru_rc_radix_tree_retain(void *backend, uint64_t index) {
+	return cx_rc_radix_tree_retain(backend, index);
+}
+
+static int
+lru_rc_radix_tree_release(void *backend, uint64_t index) {
+	return cx_rc_radix_tree_release(backend, index);
+}
+
+const struct CxLruBackendImpl cx_lru_rc_radix_tree = {
+		.retain = lru_rc_radix_tree_retain,
+		.release = lru_rc_radix_tree_release,
+};

@@ -35,6 +35,7 @@
 #define CEXTRA_COLLECTION_H
 
 #include "macro.h"
+#include "memory.h"
 #include "types.h"
 #include <stdbool.h>
 #include <stddef.h>
@@ -333,11 +334,6 @@ extern const struct CxLruBackendImpl cx_lru_rc_map;
  * primitive/rc_hash_map.c
  */
 
-/**
- * @brief The type of the key for the hash map.
- */
-typedef uint64_t sqsh_rc_map_key_t;
-
 struct CxRcHashMapInner;
 
 /**
@@ -379,8 +375,8 @@ CX_NO_UNUSED int cx_rc_hash_map_init(
  * @param data The data to set.
  * @return 0 on success, a negative value on error.
  */
-const void *cx_rc_hash_map_put(
-		struct CxRcHashMap *hash_map, sqsh_rc_map_key_t key, void *data);
+const void *
+cx_rc_hash_map_put(struct CxRcHashMap *hash_map, uint64_t key, void *data);
 
 /**
  * @internal
@@ -401,8 +397,7 @@ size_t cx_rc_hash_map_size(const struct CxRcHashMap *hash_map);
  * @param key The key of the data.
  * @return A pointer to the retained data.
  */
-const void *
-cx_rc_hash_map_retain(struct CxRcHashMap *hash_map, sqsh_rc_map_key_t key);
+const void *cx_rc_hash_map_retain(struct CxRcHashMap *hash_map, uint64_t key);
 
 /**
  * @internal
@@ -426,8 +421,7 @@ int cx_rc_hash_map_release(struct CxRcHashMap *hash_map, const void *element);
  * @param key The key of the data to release.
  * @return 0 on success, a negative value on error.
  */
-int
-cx_rc_hash_map_release_key(struct CxRcHashMap *hash_map, sqsh_rc_map_key_t key);
+int cx_rc_hash_map_release_key(struct CxRcHashMap *hash_map, uint64_t key);
 
 /**
  * @internal
@@ -459,11 +453,11 @@ struct CxLruBackendImpl {
 	/**
 	 * @brief Function that is called to retain an element.
 	 */
-	const void *(*retain)(void *backend, cx_index_t id);
+	const void *(*retain)(void *backend, uint64_t id);
 	/**
 	 * @brief Function that is called to release an element.
 	 */
-	int (*release)(void *backend, cx_index_t id);
+	int (*release)(void *backend, uint64_t id);
 };
 
 /**
@@ -564,6 +558,61 @@ typedef int (*cx_collector_next_t)(
 		void *iterator, const char **value, size_t *size);
 
 int cx_collect(char ***target, cx_collector_next_t next, void *iterator);
+
+/***************************************
+ * collection/radix_tree.c
+ */
+
+#define CX_RADIX 4
+#define CX_RADIX_SIZE (1 << CX_RADIX)
+#define CX_RADIX_MASK (CX_RADIX_SIZE - 1)
+
+struct CxRadixNode {
+	size_t occupied;
+	void *children[CX_RADIX_SIZE];
+};
+
+struct CxRadixTree {
+	uint64_t capacity;
+	struct CxPreallocPool node_pool;
+	struct CxPreallocPool leaf_pool;
+	struct CxRadixNode *root;
+};
+
+void cx_radix_tree_init(struct CxRadixTree *map, uint64_t element_size);
+
+void *cx_radix_tree_get(struct CxRadixTree *map, uint64_t key);
+
+void *
+cx_radix_tree_put(struct CxRadixTree *map, uint64_t key, const void *value);
+
+int cx_radix_tree_delete(struct CxRadixTree *map, uint64_t key);
+
+void cx_radix_tree_cleanup(struct CxRadixTree *map);
+
+/***************************************
+ * collection/rc_radix_tree.c
+ */
+
+struct CxRcRadixTree {
+	sqsh_rc_map_cleanup_t cleanup;
+	struct CxRadixTree inner;
+};
+
+void cx_rc_radix_tree_init(
+		struct CxRcRadixTree *map, sqsh_rc_map_cleanup_t cleanup,
+		size_t element_size);
+
+const void *cx_rc_radix_tree_put(
+		struct CxRcRadixTree *map, uint64_t key, const void *value);
+
+const void *cx_rc_radix_tree_retain(struct CxRcRadixTree *map, uint64_t key);
+
+int cx_rc_radix_tree_release(struct CxRcRadixTree *map, uint64_t key);
+
+void cx_rc_radix_tree_cleanup(struct CxRcRadixTree *map);
+
+extern const struct CxLruBackendImpl cx_lru_rc_radix_tree;
 
 #ifdef __cplusplus
 }

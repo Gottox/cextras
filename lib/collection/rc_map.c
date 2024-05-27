@@ -135,6 +135,9 @@ cx_rc_map_set(struct CxRcMap *array, size_t index, void *data) {
 	void *target;
 
 	target = get_element(array, index);
+	if (target == NULL) {
+		return NULL;
+	}
 
 	/* If the element is already in the array, cleanup the new data and retain
 	 * the old. */
