@@ -1,0 +1,6 @@
+configure:
+  - -Dwerror=true
+  - -Dtest=true
+  - -Db_sanitize=address,undefined
+default:
+  - test
