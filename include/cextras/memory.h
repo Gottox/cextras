@@ -96,13 +96,20 @@ CX_NO_UNUSED void *cx_memdup(const void *source, size_t size);
  */
 
 struct CxPreallocPool {
-	void **pools;
+	char **pools;
+
+	size_t chunk_size;
 	size_t element_size;
-	size_t next_index;
+	size_t next_offset;
+	size_t pool_count;
+	char *current_pool;
 	void *reuse_pool;
 };
 
 void cx_prealloc_pool_init(struct CxPreallocPool *pool, size_t element_size);
+
+void cx_prealloc_pool_init2(
+		struct CxPreallocPool *pool, size_t chunk_size, size_t element_size);
 
 void *cx_prealloc_pool_get(struct CxPreallocPool *pool);
 
