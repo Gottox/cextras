@@ -47,7 +47,7 @@ cx_prealloc_pool_init2(
 		struct CxPreallocPool *pool, size_t element_count,
 		size_t element_size) {
 	assert(element_size >= sizeof(union ReuseList));
-	assert(element_size <= pool->chunk_size);
+	assert(element_count > 0);
 	memset(pool, 0, sizeof(struct CxPreallocPool));
 	pool->chunk_size = element_count * element_size;
 	pool->element_size = element_size;
