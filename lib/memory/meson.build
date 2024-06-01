@@ -1,1 +1,1 @@
-memory_src = files('rc.c', 'utils.c', 'prealloc_pool.c')
+memory_src = files('prealloc_pool.c', 'rc.c', 'utils.c')

@@ -44,11 +44,12 @@ cx_prealloc_pool_init(struct CxPreallocPool *pool, size_t element_size) {
 
 void
 cx_prealloc_pool_init2(
-		struct CxPreallocPool *pool, size_t chunk_size, size_t element_size) {
-	pool->chunk_size = chunk_size;
+		struct CxPreallocPool *pool, size_t element_count,
+		size_t element_size) {
 	assert(element_size >= sizeof(union ReuseList));
 	assert(element_size <= pool->chunk_size);
 	memset(pool, 0, sizeof(struct CxPreallocPool));
+	pool->chunk_size = element_count * element_size;
 	pool->element_size = element_size;
 }
 
