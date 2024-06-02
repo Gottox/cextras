@@ -170,7 +170,6 @@ print_tree(struct CxRadixNode *node, size_t capacity, size_t depth) {
 
 void
 cx_radix_tree_cleanup(struct CxRadixTree *map) {
-	assert(map->root->occupied == 0);
 	cx_prealloc_pool_cleanup(&map->node_pool);
 	cx_prealloc_pool_cleanup(&map->leaf_pool);
 }
