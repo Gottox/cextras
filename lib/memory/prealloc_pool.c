@@ -1,4 +1,3 @@
-#define _DEFAULT_SOURCE
 #include "../../include/cextras/memory.h"
 #include "../../include/cextras/types.h"
 #include <assert.h>
@@ -22,7 +21,7 @@ reuse_node(struct CxPreallocPool *pool) {
 int
 add_chunk(struct CxPreallocPool *pool) {
 	pool->pool_count++;
-	pool->pools = reallocarray(pool->pools, pool->pool_count, sizeof(char *));
+	pool->pools = realloc(pool->pools, pool->pool_count * sizeof(char *));
 	if (pool->pools == NULL) {
 		return -1;
 	}
