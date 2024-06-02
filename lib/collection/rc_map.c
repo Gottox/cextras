@@ -235,12 +235,12 @@ cx_rc_map_cleanup(struct CxRcMap *array) {
 }
 
 static const void *
-lru_rc_map_retain(void *backend, size_t index) {
+lru_rc_map_retain(void *backend, uint64_t index) {
 	return cx_rc_map_retain(backend, index);
 }
 
 static int
-lru_rc_map_release(void *backend, size_t index) {
+lru_rc_map_release(void *backend, uint64_t index) {
 	return cx_rc_map_release_index(backend, index);
 }
 
