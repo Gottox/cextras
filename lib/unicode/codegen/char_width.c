@@ -132,7 +132,7 @@ print_radix_table(
 		if (all_set || all_unset) {
 			continue;
 		}
-		fprintf(out, "\n#define TBL_%lu %lu\n", i, table_index);
+		fprintf(out, "\n#define TBL_%zu %zu\n", i, table_index);
 		table_index++;
 		uint8_t current_byte = 0;
 		for (size_t j = 0; j < radix_num; j++) {
@@ -154,7 +154,7 @@ print_radix_table(
 	}
 
 	if (need_full) {
-		fprintf(out, "\n#define TBL_FULL %lu\n", table_index);
+		fprintf(out, "\n#define TBL_FULL %zu\n", table_index);
 		for (size_t i = 0; i < level_2_size; i++) {
 			if (i % 8 == 0) {
 				fputs("\t", out);
@@ -168,7 +168,7 @@ print_radix_table(
 	}
 
 	if (need_null) {
-		fprintf(out, "\n#define TBL_NULL %lu\n", table_index);
+		fprintf(out, "\n#define TBL_NULL %zu\n", table_index);
 		for (size_t i = 0; i < level_2_size; i++) {
 			if (i % 8 == 0) {
 				fputs("\t", out);
@@ -181,21 +181,21 @@ print_radix_table(
 	}
 	fputs("};\n", out);
 
-	fprintf(out, "const uint8_t %s_lookup[%lu] = {\n", table_name,
+	fprintf(out, "const uint8_t %s_lookup[%zu] = {\n", table_name,
 			level_1_size);
 	for (size_t i = 0; i < level_1_size; i++) {
-		fprintf(out, "\t[0x%04lx] = ", i);
+		fprintf(out, "\t[0x%04zx] = ", i);
 		if (level_1_all_set_map[i]) {
 			fputs("TBL_FULL,\n", out);
 		} else if (level_1_all_unset_map[i]) {
 			fputs("TBL_NULL,\n", out);
 		} else {
-			fprintf(out, "TBL_%lu,\n", i);
+			fprintf(out, "TBL_%zu,\n", i);
 		}
 	}
 	fputs("};\n", out);
-	fprintf(out, "const size_t %s_size = %lu;\n", table_name, codepoint_size);
-	fprintf(out, "const size_t %s_radix = %lu;\n", table_name, radix);
+	fprintf(out, "const size_t %s_size = %zu;\n", table_name, codepoint_size);
+	fprintf(out, "const size_t %s_radix = %zu;\n", table_name, radix);
 
 	free(level_1_all_set_map);
 	free(level_1_all_unset_map);
