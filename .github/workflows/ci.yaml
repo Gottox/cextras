@@ -33,3 +33,39 @@ jobs:
         MESON_TESTTHREADS: "1"
       run: |
         meson test -vC build
+  build-linux32:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: install dependencies
+      run: |
+        sudo apt update
+        sudo apt install --yes meson build-essential gcc-multilib g++-multilib
+    - name: configure
+      env:
+        CROSS_FILE: |
+          [binaries]
+          c = 'gcc'
+          cpp = 'g++'
+          ar = 'gcc-ar'
+          strip = 'strip'
+
+          [built-in options]
+          c_args = ['-m32']
+          c_link_args = ['-m32']
+          cpp_args = ['-m32']
+          cpp_link_args = ['-m32']
+
+          [host_machine]
+          system = 'linux'
+          cpu_family = 'x86'
+          cpu = 'i686'
+          endian = 'little'
+      run: |
+        echo "$CROSS_FILE" > cross-file.txt
+        meson setup --cross-file cross-file.txt /tmp/build \
+          -Dwerror=false \
+          -Dtest=true \
+    - name: Build
+      run: |
+         meson compile -vC /tmp/build
