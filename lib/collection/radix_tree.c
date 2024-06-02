@@ -52,7 +52,7 @@ static int
 resize(struct CxRadixTree *map, uint64_t key) {
 	while (map->capacity < key) {
 		struct CxRadixNode *old_root = map->root;
-		map->capacity = map->capacity << CX_RADIX | CX_RADIX_MASK;
+		map->capacity = (map->capacity << CX_RADIX) | CX_RADIX_MASK;
 
 		if (old_root->occupied == 0) {
 			continue;
@@ -69,7 +69,7 @@ resize(struct CxRadixTree *map, uint64_t key) {
 }
 
 void *
-cx_radix_tree_get(struct CxRadixTree *map, uint64_t key) {
+cx_radix_tree_get(const struct CxRadixTree *map, uint64_t key) {
 	if (map->capacity < key) {
 		return NULL;
 	}

@@ -581,7 +581,7 @@ struct CxRadixTree {
 
 void cx_radix_tree_init(struct CxRadixTree *map, uint64_t element_size);
 
-void *cx_radix_tree_get(struct CxRadixTree *map, uint64_t key);
+void *cx_radix_tree_get(const struct CxRadixTree *map, uint64_t key);
 
 void *
 cx_radix_tree_put(struct CxRadixTree *map, uint64_t key, const void *value);
