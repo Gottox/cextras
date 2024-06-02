@@ -21,6 +21,7 @@ reuse_node(struct CxPreallocPool *pool) {
 int
 add_chunk(struct CxPreallocPool *pool) {
 	pool->pool_count++;
+	pool->chunk_size *= 2;
 	pool->pools = realloc(pool->pools, pool->pool_count * sizeof(char *));
 	if (pool->pools == NULL) {
 		return -1;
@@ -38,7 +39,7 @@ add_chunk(struct CxPreallocPool *pool) {
 
 void
 cx_prealloc_pool_init(struct CxPreallocPool *pool, size_t element_size) {
-	cx_prealloc_pool_init2(pool, 4096, element_size);
+	cx_prealloc_pool_init2(pool, 8, element_size);
 }
 
 void
