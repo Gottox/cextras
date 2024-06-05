@@ -51,11 +51,14 @@ parse_range(char *line, int field_nbr, struct Range *range) {
 
 static int
 find_max(FILE *file, int field_nbr) {
-	char *line = NULL;
-	ssize_t line_len = 0;
-	size_t line_capacity = 0;
+	char line[1024] = {0};
 	size_t codepoint_size = 0;
-	while ((line_len = getline(&line, &line_capacity, file)) != -1) {
+	while (fgets(line, sizeof(line), file)) {
+		if (line[strlen(line) - 1] == '\n') {
+			line[strlen(line) - 1] = '\0';
+		} else {
+			return -1;
+		}
 		struct Range range = {0};
 		if (parse_range(line, field_nbr, &range) < 0) {
 			continue;
@@ -65,7 +68,6 @@ find_max(FILE *file, int field_nbr) {
 			codepoint_size = range.start;
 		}
 	}
-	free(line);
 
 	return codepoint_size + 1;
 }
@@ -73,10 +75,15 @@ find_max(FILE *file, int field_nbr) {
 static bool *
 generate_flat_table(FILE *file, int codepoint_size, int field_nbr) {
 	bool *table = calloc(codepoint_size, sizeof(bool));
-	char *line = NULL;
-	ssize_t line_len = 0;
-	size_t line_capacity = 0;
-	while ((line_len = getline(&line, &line_capacity, file)) != -1) {
+	char line[1024] = {0};
+	while (fgets(line, sizeof(line), file)) {
+		if (line[strlen(line) - 1] == '\n') {
+			line[strlen(line) - 1] = '\0';
+		} else {
+			free(table);
+			table = NULL;
+			goto out;
+		}
 		struct Range range = {0};
 		if (parse_range(line, field_nbr, &range) < 0) {
 			continue;
@@ -85,8 +92,8 @@ generate_flat_table(FILE *file, int codepoint_size, int field_nbr) {
 			table[i] = true;
 		}
 	}
-	free(line);
 
+out:
 	return table;
 }
 
@@ -224,6 +231,11 @@ main(int argc, char *argv[]) {
 	}
 
 	bool *flat_table = generate_flat_table(file, codepoint_size, field_nbr);
+	if (flat_table == NULL) {
+		perror("generate_flat_table");
+		fclose(file);
+		return 1;
+	}
 
 	print_radix_table(stdout, flat_table, table_name, codepoint_size, radix);
 

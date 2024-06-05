@@ -7,7 +7,6 @@
 #include "../../include/cextras/collection.h"
 #include "../../include/cextras/error.h"
 #include <stdint.h>
-#include <sys/wait.h>
 
 static const uintptr_t nullword = 0;
 
