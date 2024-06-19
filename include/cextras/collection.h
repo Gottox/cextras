@@ -634,21 +634,23 @@ void cx_radix_tree_cleanup(struct CxRadixTree *map);
 
 struct CxRcRadixTree {
 	sqsh_rc_map_cleanup_t cleanup;
-	struct CxRadixTree inner;
+	struct CxRadixTree values;
+	struct CxRadixTree rc;
+	size_t element_size;
 };
 
-void cx_rc_radix_tree_init(
-		struct CxRcRadixTree *map, sqsh_rc_map_cleanup_t cleanup,
-		size_t element_size);
+int cx_rc_radix_tree_init(
+		struct CxRcRadixTree *map, size_t element_size,
+		sqsh_rc_map_cleanup_t cleanup);
 
-const void *cx_rc_radix_tree_put(
-		struct CxRcRadixTree *map, uint64_t key, const void *value);
+const void *
+cx_rc_radix_tree_put(struct CxRcRadixTree *map, uint64_t key, void *value);
 
 const void *cx_rc_radix_tree_retain(struct CxRcRadixTree *map, uint64_t key);
 
 int cx_rc_radix_tree_release(struct CxRcRadixTree *map, uint64_t key);
 
-void cx_rc_radix_tree_cleanup(struct CxRcRadixTree *map);
+int cx_rc_radix_tree_cleanup(struct CxRcRadixTree *map);
 
 extern const struct CxLruBackendImpl cx_lru_rc_radix_tree;
 

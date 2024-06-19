@@ -32,56 +32,79 @@
  */
 
 #include "../../include/cextras/collection.h"
+#include <assert.h>
 
-void
-cx_rc_radix_tree_init(
-		struct CxRcRadixTree *map, sqsh_rc_map_cleanup_t cleanup,
-		size_t element_size) {
-	map->cleanup = cleanup;
-	cx_radix_tree_init(&map->inner, element_size + sizeof(struct CxRc));
-}
+#define RC_MAP_SIZE 256
 
-const void *
-cx_rc_radix_tree_put(
-		struct CxRcRadixTree *map, uint64_t key, const void *value) {
-	struct CxRc *rc = cx_radix_tree_put(&map->inner, key, value);
-	if (!rc) {
-		return NULL;
+static uint32_t *
+get_rc(struct CxRcRadixTree *tree, uint64_t key) {
+	uint64_t inner_key = key & 0xff;
+	uint64_t outer_key = key >> 8;
+
+	uint32_t *rc_map = cx_radix_tree_get(&tree->rc, outer_key);
+	if (rc_map == NULL) {
+		const uint32_t new_rc_map[RC_MAP_SIZE] = {0};
+		rc_map = cx_radix_tree_put(&tree->rc, outer_key, &new_rc_map);
 	}
-
-	cx_rc_init(rc);
-
-	return (void *)&rc[1];
+	return &rc_map[inner_key];
 }
 
 int
-cx_rc_radix_tree_release(struct CxRcRadixTree *map, uint64_t key) {
+cx_rc_radix_tree_init(
+		struct CxRcRadixTree *tree, size_t element_size,
+		sqsh_rc_map_cleanup_t cleanup) {
+	tree->cleanup = cleanup;
+	tree->element_size = element_size;
+	cx_radix_tree_init(&tree->values, element_size);
+	cx_radix_tree_init(&tree->rc, sizeof(uint32_t[RC_MAP_SIZE]));
+	return 0;
+}
+
+const void *
+cx_rc_radix_tree_put(struct CxRcRadixTree *tree, uint64_t key, void *value) {
+	uint32_t *rc = get_rc(tree, key);
+	(*rc)++;
+	if (*rc != 1) {
+		tree->cleanup(value);
+		return cx_radix_tree_get(&tree->values, key);
+	} else {
+		return cx_radix_tree_put(&tree->values, key, value);
+	}
+}
+
+int
+cx_rc_radix_tree_release(struct CxRcRadixTree *tree, uint64_t key) {
 	int rv = 0;
-	struct CxRc *rc = cx_radix_tree_get(&map->inner, key);
-	if (!rc) {
+	uint32_t *rc = get_rc(tree, key);
+	if (*rc == 0) {
 		return -1;
+	} else if (*rc == 1) {
+		tree->cleanup(cx_radix_tree_get(&tree->values, key));
+		rv = cx_radix_tree_delete(&tree->values, key);
 	}
 
-	if (cx_rc_release(rc)) {
-		rv = cx_radix_tree_delete(&map->inner, key);
-	}
+	(*rc)--;
 	return rv;
 }
 
 const void *
-cx_rc_radix_tree_retain(struct CxRcRadixTree *map, uint64_t key) {
-	struct CxRc *rc = cx_radix_tree_get(&map->inner, key);
-	if (!rc) {
+cx_rc_radix_tree_retain(struct CxRcRadixTree *tree, uint64_t key) {
+	uint32_t *rc = get_rc(tree, key);
+
+	if (*rc == 0) {
 		return NULL;
 	}
 
-	cx_rc_retain(rc);
-	return (void *)&rc[1];
+	(*rc)++;
+	return cx_radix_tree_get(&tree->values, key);
 }
 
-void
-cx_rc_radix_tree_cleanup(struct CxRcRadixTree *map) {
-	cx_radix_tree_cleanup(&map->inner);
+int
+cx_rc_radix_tree_cleanup(struct CxRcRadixTree *tree) {
+	assert(tree->values.root->occupied == 0);
+	cx_radix_tree_cleanup(&tree->values);
+	cx_radix_tree_cleanup(&tree->rc);
+	return 0;
 }
 
 static const void *
