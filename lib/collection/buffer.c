@@ -46,12 +46,38 @@ cx_buffer_init(struct CxBuffer *buffer) {
 	return rv;
 }
 
+static int
+resize_buffer_exact(struct CxBuffer *buffer, size_t new_capacity) {
+	uint8_t *new_data = realloc(buffer->data, new_capacity);
+	if (new_data == NULL) {
+		return -CX_ERR_ALLOC;
+	}
+	buffer->data = new_data;
+	buffer->capacity = new_capacity;
+	return 0;
+}
+
+static inline int
+round_to_next_pow2(size_t *val) {
+	size_t i = *val;
+	if (i <= 1) {
+		*val = 1;
+	} else {
+		size_t leading_zeros = __builtin_clzll(i - 1);
+		if (leading_zeros == 0) {
+			return -CX_ERR_INTEGER_OVERFLOW;
+		}
+		// Set the bit at the position of the first 0 to 1
+		*val = 1ULL << (sizeof(size_t) * 8 - leading_zeros);
+	}
+	return 0;
+}
+
 int
 cx_buffer_add_capacity(
 		struct CxBuffer *buffer, uint8_t **additional_buffer,
 		size_t additional_size) {
 	const size_t buffer_size = buffer->size;
-	uint8_t *new_data;
 	size_t new_capacity;
 
 	if (CX_ADD_OVERFLOW(buffer_size, additional_size, &new_capacity)) {
@@ -59,17 +85,44 @@ cx_buffer_add_capacity(
 	}
 
 	if (new_capacity > buffer->capacity) {
-		new_data = realloc(buffer->data, new_capacity);
-		if (new_data == NULL) {
-			return -CX_ERR_ALLOC;
+		// round new_capacity up to the next power of 2
+		int rv = round_to_next_pow2(&new_capacity);
+		if (rv < 0) {
+			return rv;
 		}
-		buffer->data = new_data;
-		buffer->capacity = new_capacity;
+
+		rv = resize_buffer_exact(buffer, new_capacity);
+		if (rv < 0) {
+			return rv;
+		}
 	}
 	if (additional_buffer != NULL) {
 		*additional_buffer = &buffer->data[buffer_size];
 	}
-	return new_capacity;
+	return 0;
+}
+
+int
+cx_buffer_add_capacity_exact(
+		struct CxBuffer *buffer, uint8_t **additional_buffer,
+		size_t additional_size) {
+	const size_t buffer_size = buffer->size;
+	size_t new_capacity;
+
+	if (CX_ADD_OVERFLOW(buffer_size, additional_size, &new_capacity)) {
+		return -CX_ERR_INTEGER_OVERFLOW;
+	}
+
+	if (new_capacity > buffer->capacity) {
+		int rv = resize_buffer_exact(buffer, new_capacity);
+		if (rv < 0) {
+			return rv;
+		}
+	}
+	if (additional_buffer != NULL) {
+		*additional_buffer = &buffer->data[buffer_size];
+	}
+	return 0;
 }
 
 int

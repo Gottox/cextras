@@ -100,17 +100,55 @@ cx_buffer_add_size(struct CxBuffer *buffer, size_t additional_size);
  * CxBuffer and sets additional_buffer to the beginning of the additional
  * memory.
  *
- * After cx_buffer_add_capacity has been called, the buffer will behave
- * undefined if you query data or size. In order to use the buffer again, you
- * need to call cx_buffer_add_size again.
+ * On success, the buffer has at least `additional_size` bytes of capacity more
+ * than the size. `additional_buffer`, if non-NULL, points to the beginning of
+ * the extra capacity (immediately after the current size).
  *
- * @param[in,out] buffer The CxBuffer to free.
+ * On error, the buffer is not modified, and additional_buffer
+ * _must not_ be used.
+ *
+ * @note The additional memory is not initialized
+ * @see cx_buffer_add_capacity_exact
+ *
+ * @param[in,out] buffer The CxBuffer to add capacity to.
  * @param[in] additional_buffer The pointer to the additional memory.
  * @param[in] additional_size The size of the additional memory.
  *
  * @return 0 on success, less than 0 on error.
  */
 CX_NO_UNUSED int cx_buffer_add_capacity(
+		struct CxBuffer *buffer, uint8_t **additional_buffer,
+		size_t additional_size);
+
+/**
+ * @internal
+ * @memberof CxBuffer
+ * @brief cx_buffer_add_size_exact allocates additional memory for the
+ * CxBuffer and sets additional_buffer to the beginning of the additional
+ * memory.
+ *
+ * On success, the buffer at least `additional_size` bytes of capacity more
+ * than the size. `additional_buffer`, if non-NULL, points to the beginning of
+ * the extra capacity (immediately after the current size).
+ *
+ * Unlike cx_buffer_add_capacity, this will not deliberately over-allocate to
+ * speculatively avoid frequent allocations. Does nothing if the capacity is
+ * already sufficient. Prefer cx_buffer_add_capacity if future growth is
+ * expected.
+ *
+ * On error, the buffer is not modified, and additional_buffer
+ * _must not_ be used.
+ *
+ * @note The additional memory is not initialized
+ * @see cx_buffer_add_capacity
+ *
+ * @param[in,out] buffer The CxBuffer to add capacity to.
+ * @param[in] additional_buffer The pointer to the additional memory.
+ * @param[in] additional_size The size of the additional memory.
+ *
+ * @return 0 on success, less than 0 on error.
+ */
+CX_NO_UNUSED int cx_buffer_add_capacity_exact(
 		struct CxBuffer *buffer, uint8_t **additional_buffer,
 		size_t additional_size);
 
