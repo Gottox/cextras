@@ -34,7 +34,6 @@
 
 #include <assert.h>
 #include <cextras/collection.h>
-#include <stdint.h>
 #include <testlib.h>
 #include <time.h>
 
@@ -77,7 +76,7 @@ set_size_max(void) {
 
 	cx_radix_tree_init(&map, sizeof(uintptr_t));
 
-	uint64_t key = SIZE_MAX;
+	uint64_t key = UINT64_MAX;
 	uintptr_t value = 42;
 	const uintptr_t *set_ptr = cx_radix_tree_put(&map, key, &value);
 	assert(set_ptr != NULL);
@@ -93,8 +92,37 @@ set_size_max(void) {
 	cx_radix_tree_cleanup(&map);
 }
 
+static void
+test_cleanup(void) {
+	struct CxRadixTree tree;
+	uint64_t data = 23;
+
+	cx_radix_tree_init(&tree, sizeof(uint64_t));
+
+	uint64_t key = 6762;
+	const uint64_t *set_ptr = cx_radix_tree_put(&tree, key, &data);
+	assert(set_ptr != &data);
+
+	key = 12715;
+	const uint64_t *set_ptr2 = cx_radix_tree_put(&tree, key, &data);
+	assert(set_ptr2 != &data);
+
+	cx_radix_tree_delete(&tree, 6762);
+
+	uint64_t *get_ptr = cx_radix_tree_get(&tree, 12715);
+	assert(get_ptr != NULL);
+
+	cx_radix_tree_delete(&tree, 12715);
+
+	get_ptr = cx_radix_tree_get(&tree, 12715);
+	assert(get_ptr == NULL);
+
+	cx_radix_tree_cleanup(&tree);
+}
+
 DECLARE_TESTS
 TEST(init_radix_tree)
 TEST(set_and_get_element)
 TEST(set_size_max)
+TEST(test_cleanup)
 END_TESTS

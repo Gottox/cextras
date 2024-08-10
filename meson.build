@@ -25,3 +25,7 @@ subdir('testlib')
 if get_option('test')
     subdir('test')
 endif
+
+if get_option('fuzzer')
+    subdir('fuzzer')
+endif

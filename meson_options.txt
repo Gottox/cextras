@@ -10,3 +10,9 @@ option(
     value: false,
     description: 'Run tests.',
 )
+option(
+    'fuzzer',
+    type: 'boolean',
+    value: false,
+    description: 'Run tests.',
+)

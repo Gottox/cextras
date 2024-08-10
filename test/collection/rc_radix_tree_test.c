@@ -85,7 +85,34 @@ set_and_get_element(void) {
 	assert(rv == 0);
 }
 
+static void
+test_cleanup(void) {
+	int rv;
+	struct CxRcRadixTree tree;
+	uint64_t data = 23;
+
+	rv = cx_rc_radix_tree_init(&tree, sizeof(uint64_t), rc_radix_tree_deinit);
+	assert(rv == 0);
+
+	uint64_t key = 6762;
+	const uint64_t *set_ptr = cx_rc_radix_tree_put(&tree, key, &data);
+	assert(rv == 0);
+	assert(set_ptr != &data);
+
+	key = 12715;
+	const uint64_t *set_ptr2 = cx_rc_radix_tree_put(&tree, key, &data);
+	assert(rv == 0);
+	assert(set_ptr2 != &data);
+
+	cx_rc_radix_tree_release(&tree, 6762);
+	cx_rc_radix_tree_release(&tree, 12715);
+
+	rv = cx_rc_radix_tree_cleanup(&tree);
+	assert(rv == 0);
+}
+
 DECLARE_TESTS
 TEST(init_rc_radix_tree)
 TEST(set_and_get_element)
+TEST(test_cleanup)
 END_TESTS

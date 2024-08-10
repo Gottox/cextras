@@ -43,9 +43,9 @@ get_rc(struct CxRcRadixTree *tree, uint64_t key) {
 
 	uint32_t *rc_map = cx_radix_tree_get(&tree->rc, outer_key);
 	if (rc_map == NULL) {
-		const uint32_t new_rc_map[RC_MAP_SIZE] = {0};
-		rc_map = cx_radix_tree_put(&tree->rc, outer_key, &new_rc_map);
+		rc_map = cx_radix_tree_new_leaf(&tree->rc, outer_key);
 	}
+	assert(rc_map != NULL);
 	return &rc_map[inner_key];
 }
 
@@ -63,11 +63,12 @@ cx_rc_radix_tree_init(
 const void *
 cx_rc_radix_tree_put(struct CxRcRadixTree *tree, uint64_t key, void *value) {
 	uint32_t *rc = get_rc(tree, key);
-	(*rc)++;
-	if (*rc != 1) {
+	if (*rc != 0) {
+		(*rc)++;
 		tree->cleanup(value);
 		return cx_radix_tree_get(&tree->values, key);
 	} else {
+		*rc = 1;
 		return cx_radix_tree_put(&tree->values, key, value);
 	}
 }
@@ -101,7 +102,6 @@ cx_rc_radix_tree_retain(struct CxRcRadixTree *tree, uint64_t key) {
 
 int
 cx_rc_radix_tree_cleanup(struct CxRcRadixTree *tree) {
-	assert(tree->values.root->occupied == 0);
 	cx_radix_tree_cleanup(&tree->values);
 	cx_radix_tree_cleanup(&tree->rc);
 	return 0;

@@ -43,13 +43,13 @@
 #	include <stdio.h>
 
 static void
-debug_print(const struct CxLru *lru, const char msg, sqsh_index_t ring_index) {
-	sqsh_index_t backend_index = lru->items[ring_index];
+debug_print(const struct CxLru *lru, const char msg, size_t ring_index) {
+	size_t backend_index = lru->items[ring_index];
 
 	fprintf(stderr, "%clru %lu: ", msg, ring_index);
 	size_t sum = 0;
 	for (size_t i = 0; i < lru->size; i++) {
-		sqsh_index_t cur_index = lru->items[i];
+		size_t cur_index = lru->items[i];
 		if (cur_index == backend_index) {
 			sum++;
 		}

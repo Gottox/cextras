@@ -28,148 +28,188 @@
 
 /**
  * @author       Enno Boland (mail@eboland.de)
- * @file         rc_map.c
+ * @file         rc_tree.c
  */
 
 #include "../../include/cextras/collection.h"
 
-#include <assert.h>
 #include <stdio.h>
 #include <string.h>
 
-void
-cx_radix_tree_init(struct CxRadixTree *map, size_t element_size) {
-	memset(map, 0, sizeof(struct CxRadixTree));
+#if 0
+static void
+inner_dump_tree(int index, void *node, uint64_t capacity) {
+	if (node == NULL) {
+		return;
+	}
+	int indent = (capacity ? __builtin_clzll(capacity) : 64) / CX_RADIX * 2;
+	for (int i = 0; i < indent; i++) {
+		putchar(' ');
+	}
+	if (capacity == 0) {
+		printf("%02x LEAF: %p\n", index, node);
+	} else {
+		struct CxRadixNode *branch = node;
+		printf("%02x BRNH: %p\n", index, (void *)branch);
+		for (uint64_t i = 0; i < CX_RADIX_SIZE; i++) {
+			inner_dump_tree(i, branch->children[i], capacity >> CX_RADIX);
+		}
+	}
+}
+static void
+dump_tree(struct CxRadixTree *tree) {
+	puts("------------------");
+	inner_dump_tree(0, tree->root, tree->capacity);
 
-	cx_prealloc_pool_init(&map->leaf_pool, element_size);
-	cx_prealloc_pool_init(&map->node_pool, sizeof(struct CxRadixNode));
+}
+#else
+#	define dump_tree(...)
+#endif
 
-	map->capacity = CX_RADIX_MASK;
-	map->root = cx_prealloc_pool_get(&map->node_pool);
+static uint64_t
+prepare_key(const struct CxRadixTree *tree, uint64_t key) {
+	uint64_t capacity = tree->capacity;
+	uint64_t result = 0;
+	while (capacity != 0) {
+		result <<= CX_RADIX;
+		result |= key & CX_RADIX_MASK;
+		key >>= CX_RADIX;
+		capacity >>= CX_RADIX;
+	}
+	return result;
 }
 
 static int
-resize(struct CxRadixTree *map, uint64_t key) {
-	while (map->capacity < key) {
-		struct CxRadixNode *old_root = map->root;
-		map->capacity = (map->capacity << CX_RADIX) | CX_RADIX_MASK;
+resize(struct CxRadixTree *tree, uint64_t key) {
+	while (tree->capacity < key) {
+		void *old_root = tree->root;
+		tree->capacity = (tree->capacity << CX_RADIX) | CX_RADIX_MASK;
 
-		if (old_root->occupied == 0) {
-			continue;
-		}
-		struct CxRadixNode *new_root = cx_prealloc_pool_get(&map->node_pool);
+		struct CxRadixBranch *new_root =
+				cx_prealloc_pool_get(&tree->branch_pool);
 		if (new_root == NULL) {
 			return -1;
 		}
 		new_root->children[0] = old_root;
-		new_root->occupied = 1;
-		map->root = new_root;
+		tree->root = new_root;
 	}
 	return 0;
 }
 
-void *
-cx_radix_tree_get(const struct CxRadixTree *map, uint64_t key) {
-	if (map->capacity < key) {
-		return NULL;
-	}
-
-	struct CxRadixNode *node = map->root;
-	size_t capacity = map->capacity;
-	while (capacity >= CX_RADIX_SIZE) {
-		node = node->children[key & CX_RADIX_MASK];
-		if (node == NULL) {
-			return NULL;
-		}
-		capacity >>= CX_RADIX;
-		key >>= CX_RADIX;
-	}
-	return node->children[key];
+void
+cx_radix_tree_init(struct CxRadixTree *tree, size_t element_size) {
+	tree->capacity = 0;
+	cx_prealloc_pool_init(&tree->branch_pool, sizeof(struct CxRadixBranch));
+	cx_prealloc_pool_init(&tree->leaf_pool, element_size);
+	tree->root = NULL;
 }
 
 void *
-cx_radix_tree_put(struct CxRadixTree *map, uint64_t key, const void *value) {
-	if (resize(map, key) < 0 || cx_radix_tree_get(map, key) != NULL) {
-		return NULL;
-	}
+cx_radix_tree_get(const struct CxRadixTree *tree, uint64_t key) {
+	void *node = tree->root;
 
-	struct CxRadixNode *node = map->root;
-	size_t capacity = map->capacity;
-	while (capacity >= CX_RADIX_SIZE) {
-		size_t index = key & CX_RADIX_MASK;
-		if (node->children[index] == NULL) {
-			struct CxRadixNode *new_node =
-					cx_prealloc_pool_get(&map->node_pool);
-			if (new_node == NULL) {
-				return NULL;
-			}
-			memset(new_node, 0, sizeof(*new_node));
-			node->children[index] = new_node;
-			node->occupied++;
-		}
-		node = node->children[index];
-		capacity >>= CX_RADIX;
-		key >>= CX_RADIX;
-	}
-	assert(node->children[key] == NULL);
+	key = prepare_key(tree, key);
+	printf("key: %lx\n", key);
 
-	node->occupied++;
-	void *leaf = node->children[key] = cx_prealloc_pool_get(&map->leaf_pool);
-	memcpy(leaf, value, map->leaf_pool.element_size);
+	uint64_t remaining_capacity = tree->capacity;
+	uint64_t remaining_key = key;
+
+	while (remaining_capacity != 0 && node != NULL) {
+		const uint8_t index = remaining_key & CX_RADIX_MASK;
+		struct CxRadixBranch *branch = node;
+		printf("index: %x\n", index);
+
+		remaining_capacity >>= CX_RADIX;
+		remaining_key >>= CX_RADIX;
+
+		node = branch->children[index];
+	}
+	return node;
+}
+
+void *
+cx_radix_tree_put(struct CxRadixTree *tree, uint64_t key, const void *value) {
+	void *leaf = cx_radix_tree_new_leaf(tree, key);
+	if (leaf != NULL) {
+		memcpy(leaf, value, tree->leaf_pool.element_size);
+	}
 	return leaf;
 }
 
+void *
+cx_radix_tree_new_leaf(struct CxRadixTree *tree, uint64_t key) {
+	bool occupied = false;
+	if (resize(tree, key) < 0) {
+		return NULL;
+	}
+
+	key = prepare_key(tree, key);
+	printf("key: %lx\n", key);
+	dump_tree(tree);
+
+	if (tree->root == NULL) {
+		tree->root = cx_prealloc_pool_get(&tree->leaf_pool);
+		return tree->root;
+	}
+
+	void *node = tree->root;
+	uint64_t remaining_capacity = tree->capacity;
+	uint64_t remaining_key = key;
+
+	while (remaining_capacity != 0) {
+		const uint8_t index = remaining_key & CX_RADIX_MASK;
+		struct CxRadixBranch *branch = node;
+		printf("index: %x\n", index);
+		printf("node: %p\n", node);
+
+		remaining_capacity >>= CX_RADIX;
+		remaining_key >>= CX_RADIX;
+
+		occupied = branch->children[index] != NULL;
+		if (remaining_capacity == 0) {
+			branch->children[index] = cx_prealloc_pool_get(&tree->leaf_pool);
+		} else if (occupied == false) {
+			branch->children[index] = cx_prealloc_pool_get(&tree->branch_pool);
+		}
+		node = branch->children[index];
+	}
+
+	dump_tree(tree);
+
+	if (occupied) {
+		return NULL;
+	} else {
+		return node;
+	}
+}
+
 int
-cx_radix_tree_delete(struct CxRadixTree *map, uint64_t key) {
-	if (map->capacity < key || cx_radix_tree_get(map, key) == NULL) {
+cx_radix_tree_delete(struct CxRadixTree *tree, uint64_t key) {
+	key = prepare_key(tree, key);
+	void **node = &tree->root;
+	uint64_t remaining_capacity = tree->capacity;
+	uint64_t remaining_key = key;
+
+	while (remaining_capacity != 0 && *node != NULL) {
+		const uint8_t index = remaining_key & CX_RADIX_MASK;
+		struct CxRadixBranch *branch = *node;
+
+		remaining_capacity >>= CX_RADIX;
+		remaining_key >>= CX_RADIX;
+
+		node = &branch->children[index];
+	}
+	if (remaining_capacity == 0) {
+		cx_prealloc_pool_recycle(&tree->leaf_pool, *node);
+		*node = NULL;
+		return 0;
+	} else {
 		return -1;
 	}
-
-	struct CxRadixNode *node = map->root;
-	size_t capacity = map->capacity;
-	while (capacity >= CX_RADIX_SIZE) {
-		size_t index = key & CX_RADIX_MASK;
-		if (node->children[index] == NULL) {
-			return -1;
-		}
-		struct CxRadixNode *next_node = node->children[index];
-		node->occupied--;
-		if (node->occupied == 0) {
-			cx_prealloc_pool_recycle(&map->node_pool, node);
-		}
-		capacity >>= CX_RADIX;
-		key >>= CX_RADIX;
-		node = next_node;
-	}
-
-	node->occupied--;
-	cx_prealloc_pool_recycle(&map->leaf_pool, node->children[key]);
-	return 0;
 }
-
-#if 0
-static void
-print_tree(struct CxRadixNode *node, size_t capacity, size_t depth) {
-	for (size_t i = 0; i < depth; i++) {
-		fputs("  ", stdout);
-	}
-	if (node == NULL) {
-		puts("+ NULL");
-		return;
-	} else if (capacity == 1) {
-		puts("+ leaf");
-		return;
-	}
-
-	puts("+ node");
-	for (size_t i = 0; i < CX_RADIX_SIZE; i++) {
-		print_tree(node->children[i], capacity >> CX_RADIX, depth + 1);
-	}
-}
-#endif
 
 void
-cx_radix_tree_cleanup(struct CxRadixTree *map) {
-	cx_prealloc_pool_cleanup(&map->node_pool);
-	cx_prealloc_pool_cleanup(&map->leaf_pool);
+cx_radix_tree_cleanup(struct CxRadixTree *tree) {
+	cx_prealloc_pool_cleanup(&tree->branch_pool);
+	cx_prealloc_pool_cleanup(&tree->leaf_pool);
 }

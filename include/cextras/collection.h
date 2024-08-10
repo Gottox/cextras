@@ -601,32 +601,33 @@ int cx_collect(char ***target, cx_collector_next_t next, void *iterator);
  * collection/radix_tree.c
  */
 
-#define CX_RADIX 4
+#define CX_RADIX 8
 #define CX_RADIX_SIZE (1 << CX_RADIX)
 #define CX_RADIX_MASK (CX_RADIX_SIZE - 1)
 
-struct CxRadixNode {
-	size_t occupied;
+struct CxRadixBranch {
 	void *children[CX_RADIX_SIZE];
 };
 
 struct CxRadixTree {
 	uint64_t capacity;
-	struct CxPreallocPool node_pool;
+	struct CxPreallocPool branch_pool;
 	struct CxPreallocPool leaf_pool;
-	struct CxRadixNode *root;
+	void *root;
 };
 
-void cx_radix_tree_init(struct CxRadixTree *map, size_t element_size);
+void cx_radix_tree_init(struct CxRadixTree *tree, size_t element_size);
 
-void *cx_radix_tree_get(const struct CxRadixTree *map, uint64_t key);
+void *cx_radix_tree_get(const struct CxRadixTree *tree, uint64_t key);
+
+void *cx_radix_tree_new_leaf(struct CxRadixTree *tree, uint64_t key);
 
 void *
-cx_radix_tree_put(struct CxRadixTree *map, uint64_t key, const void *value);
+cx_radix_tree_put(struct CxRadixTree *tree, uint64_t key, const void *value);
 
-int cx_radix_tree_delete(struct CxRadixTree *map, uint64_t key);
+int cx_radix_tree_delete(struct CxRadixTree *tree, uint64_t key);
 
-void cx_radix_tree_cleanup(struct CxRadixTree *map);
+void cx_radix_tree_cleanup(struct CxRadixTree *tree);
 
 /***************************************
  * collection/rc_radix_tree.c
@@ -640,17 +641,17 @@ struct CxRcRadixTree {
 };
 
 int cx_rc_radix_tree_init(
-		struct CxRcRadixTree *map, size_t element_size,
+		struct CxRcRadixTree *tree, size_t element_size,
 		sqsh_rc_map_cleanup_t cleanup);
 
 const void *
-cx_rc_radix_tree_put(struct CxRcRadixTree *map, uint64_t key, void *value);
+cx_rc_radix_tree_put(struct CxRcRadixTree *tree, uint64_t key, void *value);
 
-const void *cx_rc_radix_tree_retain(struct CxRcRadixTree *map, uint64_t key);
+const void *cx_rc_radix_tree_retain(struct CxRcRadixTree *tree, uint64_t key);
 
-int cx_rc_radix_tree_release(struct CxRcRadixTree *map, uint64_t key);
+int cx_rc_radix_tree_release(struct CxRcRadixTree *tree, uint64_t key);
 
-int cx_rc_radix_tree_cleanup(struct CxRcRadixTree *map);
+int cx_rc_radix_tree_cleanup(struct CxRcRadixTree *tree);
 
 extern const struct CxLruBackendImpl cx_lru_rc_radix_tree;
 
