@@ -104,7 +104,9 @@ worker_wait_for_task(struct CxWorker *worker) {
 	task = worker_get_task(worker);
 	if (task == NULL) {
 		atomic_fetch_sub(&threadpool->active_workers, 1);
-		pthread_cond_signal(&worker->pool->wait_cond);
+		pthread_mutex_lock(&threadpool->wait_mutex);
+		pthread_cond_signal(&threadpool->wait_cond);
+		pthread_mutex_unlock(&threadpool->wait_mutex);
 
 		while (task == NULL && atomic_load(&worker->pool->running)) {
 			pthread_cond_wait(&worker->queue_cond, &worker->queue_mutex);
@@ -139,7 +141,10 @@ worker_run(void *data) {
 
 static int
 worker_cleanup(struct CxWorker *worker) {
+	pthread_mutex_lock(&worker->queue_mutex);
 	pthread_cond_signal(&worker->queue_cond);
+	pthread_mutex_unlock(&worker->queue_mutex);
+
 	pthread_join(worker->thread, NULL);
 	pthread_mutex_destroy(&worker->queue_mutex);
 	pthread_cond_destroy(&worker->queue_cond);
@@ -165,13 +170,22 @@ worker_init(struct CxWorker *worker, struct CxThreadpool *threadpool) {
 		goto out;
 	}
 
-	rv = pthread_create(&worker->thread, NULL, worker_run, worker);
-
 out:
 	if (rv < 0) {
 		worker_cleanup(worker);
 	}
 	return 0;
+}
+
+static int
+worker_start(struct CxWorker *worker) {
+	int rv = pthread_create(&worker->thread, NULL, worker_run, worker);
+	if (rv != 0) {
+		rv = -1;
+		goto out;
+	}
+out:
+	return rv;
 }
 
 int
@@ -197,6 +211,15 @@ cx_threadpool_init(struct CxThreadpool *threadpool, size_t worker_count) {
 		struct CxWorker *worker = &threadpool->workers[i];
 		rv = worker_init(worker, threadpool);
 		if (rv < 0) {
+			goto out;
+		}
+	}
+
+	for (size_t i = 0; i < worker_count; i++) {
+		struct CxWorker *worker = &threadpool->workers[i];
+		rv = worker_start(worker);
+		if (rv != 0) {
+			rv = -1;
 			goto out;
 		}
 	}
