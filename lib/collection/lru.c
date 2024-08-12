@@ -86,7 +86,7 @@ cx_lru_init(
 }
 
 int
-cx_lru_touch(struct CxLru *lru, size_t index) {
+cx_lru_touch(struct CxLru *lru, uint64_t index) {
 	if (lru->size == 0) {
 		return 0;
 	}

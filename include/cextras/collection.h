@@ -536,7 +536,7 @@ CX_NO_UNUSED int cx_lru_init(
  * @param id The id of the item to touch
  * @return 0 on success, a negative value on error.
  */
-CX_NO_UNUSED int cx_lru_touch(struct CxLru *lru, size_t id);
+CX_NO_UNUSED int cx_lru_touch(struct CxLru *lru, uint64_t id);
 
 /**
  * @internal
