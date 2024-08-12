@@ -49,36 +49,40 @@ waiter(void *arg) {
 
 static void
 test_first_wait_then_resolve(void) {
+	int rv = 0;
 	int marker = 42;
-	cx_threadpool_t pool = cx_threadpool_init(1);
-	assert(pool != NULL);
+	struct CxThreadpool pool = {0};
+	rv = cx_threadpool_init(&pool, 1);
+	assert(rv == 0);
 
 	cx_future_t future = cx_future_init(&marker);
 
-	cx_threadpool_schedule(pool, 0, waiter, future);
+	cx_threadpool_schedule(&pool, waiter, future);
 
 	usleep(10000);
 
 	resolver(future);
 
-	cx_threadpool_destroy(pool);
+	cx_threadpool_cleanup(&pool);
 }
 
 static void
 test_first_resolve_then_wait(void) {
+	int rv = 0;
 	int marker = 42;
-	cx_threadpool_t pool = cx_threadpool_init(1);
-	assert(pool != NULL);
+	struct CxThreadpool pool = {0};
+	rv = cx_threadpool_init(&pool, 1);
+	assert(rv == 0);
 
 	cx_future_t future = cx_future_init(&marker);
 
-	cx_threadpool_schedule(pool, 0, resolver, future);
+	cx_threadpool_schedule(&pool, resolver, future);
 
 	usleep(10000);
 
 	waiter(future);
 
-	cx_threadpool_destroy(pool);
+	cx_threadpool_cleanup(&pool);
 }
 
 DECLARE_TESTS

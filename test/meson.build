@@ -28,5 +28,9 @@ foreach test : tests
             cextras_dep,
         ],
     )
-    test(test, test_exe)
+    test(
+        test,
+        test_exe,
+        timeout: 5,
+    )
 endforeach

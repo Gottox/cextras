@@ -35,10 +35,14 @@
 
 #define THREADPOOL_H
 
+#include "memory.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include <pthread.h>
+#include <stdatomic.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -46,20 +50,40 @@ extern "C" {
  * concurrency/threadpool.c
  */
 
-/**
- * @brief A function running a thread pool task.
- */
-typedef struct CxThreadpool *cx_threadpool_t;
-
-/**
- * @brief A function running a thread pool task.
- */
 typedef void (*cx_threadpool_task_t)(void *);
+
+struct CxTask {
+	cx_threadpool_task_t function;
+	void *arg;
+	struct CxTask *next;
+};
+
+struct CxWorker {
+	pthread_t thread;
+	struct CxThreadpool *pool;
+	struct CxTask *head;
+	struct CxTask *tail;
+	atomic_size_t queue_length;
+	pthread_mutex_t queue_mutex;
+	pthread_cond_t queue_cond;
+};
+
+struct CxThreadpool {
+	struct CxWorker *workers;
+	size_t worker_count;
+	atomic_bool running;
+	atomic_size_t active_workers;
+	pthread_mutex_t wait_mutex;
+	pthread_cond_t wait_cond;
+
+	pthread_mutex_t task_pool_mutex;
+	struct CxPreallocPool task_pool;
+};
 
 /**
  * @brief Initializes a threadpool.
  */
-cx_threadpool_t cx_threadpool_init(size_t num_threads);
+int cx_threadpool_init(struct CxThreadpool *threadpool, size_t num_threads);
 
 /**
  * @brief Adds a task to the threadpool.
@@ -69,13 +93,17 @@ cx_threadpool_t cx_threadpool_init(size_t num_threads);
  * @param arg The argument to the task function.
  */
 int cx_threadpool_schedule(
-		cx_threadpool_t threadpool, uintptr_t group, cx_threadpool_task_t task,
-		void *arg);
+		struct CxThreadpool *threadpool, cx_threadpool_task_t task, void *arg);
+
+/**
+ * @brief Waits for all tasks to finish.
+ */
+int cx_threadpool_wait(struct CxThreadpool *threadpool);
 
 /**
  * @brief Cleans up a threadpool.
  */
-int cx_threadpool_destroy(cx_threadpool_t threadpool);
+int cx_threadpool_cleanup(struct CxThreadpool *threadpool);
 
 /***************************************
  * concurrency/future.c
