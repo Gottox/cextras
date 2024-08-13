@@ -72,7 +72,7 @@ struct CxThreadpool {
 	struct CxWorker *workers;
 	size_t worker_count;
 	atomic_bool running;
-	atomic_size_t active_workers;
+	atomic_size_t active_tasks;
 	pthread_mutex_t wait_mutex;
 	pthread_cond_t wait_cond;
 

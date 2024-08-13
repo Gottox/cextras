@@ -96,24 +96,16 @@ worker_find_task(struct CxWorker *worker) {
 
 static struct CxTask *
 worker_wait_for_task(struct CxWorker *worker) {
-	struct CxThreadpool *threadpool = worker->pool;
 	struct CxTask *task = NULL;
 
 	pthread_mutex_lock(&worker->queue_mutex);
 
 	task = worker_get_task(worker);
 	if (task == NULL) {
-		atomic_fetch_sub(&threadpool->active_workers, 1);
-		pthread_mutex_lock(&threadpool->wait_mutex);
-		pthread_cond_signal(&threadpool->wait_cond);
-		pthread_mutex_unlock(&threadpool->wait_mutex);
-
 		while (task == NULL && atomic_load(&worker->pool->running)) {
 			pthread_cond_wait(&worker->queue_cond, &worker->queue_mutex);
 			task = worker_get_task(worker);
 		}
-
-		atomic_fetch_add(&threadpool->active_workers, 1);
 	}
 	pthread_mutex_unlock(&worker->queue_mutex);
 
@@ -134,6 +126,12 @@ worker_run(void *data) {
 		if (task != NULL) {
 			task->function(task->arg);
 			task_free(threadpool, task);
+
+			pthread_mutex_lock(&threadpool->wait_mutex);
+			if (atomic_fetch_sub(&threadpool->active_tasks, 1) == 1) {
+				pthread_cond_signal(&threadpool->wait_cond);
+			}
+			pthread_mutex_unlock(&threadpool->wait_mutex);
 		}
 	}
 	return 0;
@@ -198,7 +196,7 @@ cx_threadpool_init(struct CxThreadpool *threadpool, size_t worker_count) {
 	cx_prealloc_pool_init(&threadpool->task_pool, sizeof(struct CxTask));
 
 	threadpool->worker_count = worker_count;
-	atomic_init(&threadpool->active_workers, worker_count);
+	atomic_init(&threadpool->active_tasks, 0);
 	atomic_init(&threadpool->running, true);
 
 	threadpool->workers = calloc(worker_count, sizeof(struct CxWorker));
@@ -261,6 +259,7 @@ cx_threadpool_schedule(
 	}
 	worker->tail = new_task;
 
+	atomic_fetch_add(&threadpool->active_tasks, 1);
 	atomic_fetch_add(&worker->queue_length, 1);
 	pthread_cond_signal(&worker->queue_cond);
 
@@ -275,7 +274,7 @@ out:
 int
 cx_threadpool_wait(struct CxThreadpool *threadpool) {
 	pthread_mutex_lock(&threadpool->wait_mutex);
-	while (atomic_load(&threadpool->active_workers) > 0) {
+	while (atomic_load(&threadpool->active_tasks) > 0) {
 		pthread_cond_wait(&threadpool->wait_cond, &threadpool->wait_mutex);
 	}
 	pthread_mutex_unlock(&threadpool->wait_mutex);
