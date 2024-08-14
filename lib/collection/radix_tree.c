@@ -33,10 +33,10 @@
 
 #include "../../include/cextras/collection.h"
 
-#include <stdio.h>
 #include <string.h>
 
 #if 0
+#	include <stdio.h>
 static void
 inner_dump_tree(int index, void *node, uint64_t capacity) {
 	if (node == NULL) {
@@ -109,7 +109,6 @@ cx_radix_tree_get(const struct CxRadixTree *tree, uint64_t key) {
 	void *node = tree->root;
 
 	key = prepare_key(tree, key);
-	printf("key: %lx\n", key);
 
 	uint64_t remaining_capacity = tree->capacity;
 	uint64_t remaining_key = key;
@@ -117,7 +116,6 @@ cx_radix_tree_get(const struct CxRadixTree *tree, uint64_t key) {
 	while (remaining_capacity != 0 && node != NULL) {
 		const uint8_t index = remaining_key & CX_RADIX_MASK;
 		struct CxRadixBranch *branch = node;
-		printf("index: %x\n", index);
 
 		remaining_capacity >>= CX_RADIX;
 		remaining_key >>= CX_RADIX;
@@ -144,7 +142,6 @@ cx_radix_tree_new_leaf(struct CxRadixTree *tree, uint64_t key) {
 	}
 
 	key = prepare_key(tree, key);
-	printf("key: %lx\n", key);
 	dump_tree(tree);
 
 	if (tree->root == NULL) {
@@ -159,8 +156,6 @@ cx_radix_tree_new_leaf(struct CxRadixTree *tree, uint64_t key) {
 	while (remaining_capacity != 0) {
 		const uint8_t index = remaining_key & CX_RADIX_MASK;
 		struct CxRadixBranch *branch = node;
-		printf("index: %x\n", index);
-		printf("node: %p\n", node);
 
 		remaining_capacity >>= CX_RADIX;
 		remaining_key >>= CX_RADIX;
