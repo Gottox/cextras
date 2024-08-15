@@ -3,6 +3,32 @@
 #include <assert.h>
 #include <string.h>
 
+#if 0
+void
+cx_prealloc_pool_init2(
+		struct CxPreallocPool *pool, size_t element_count,
+		size_t element_size) {
+	(void)element_count;
+	(void)pool;
+	pool->element_size = element_size;
+}
+
+void *
+cx_prealloc_pool_get(struct CxPreallocPool *pool) {
+	return calloc(1, pool->element_size);
+}
+
+void
+cx_prealloc_pool_recycle(struct CxPreallocPool *pool, void *element) {
+	(void)pool;
+	free(element);
+}
+
+void
+cx_prealloc_pool_cleanup(struct CxPreallocPool *pool) {
+	(void)pool;
+}
+#else
 union ReuseList {
 	union ReuseList *next;
 	char element;
@@ -35,11 +61,6 @@ add_chunk(struct CxPreallocPool *pool) {
 	pool->pools[pool->pool_count - 1] = new_chunk;
 	pool->next_offset = 0;
 	return 0;
-}
-
-void
-cx_prealloc_pool_init(struct CxPreallocPool *pool, size_t element_size) {
-	cx_prealloc_pool_init2(pool, 8, element_size);
 }
 
 void
@@ -86,4 +107,10 @@ cx_prealloc_pool_cleanup(struct CxPreallocPool *pool) {
 	}
 
 	free(pool->pools);
+}
+#endif
+
+void
+cx_prealloc_pool_init(struct CxPreallocPool *pool, size_t element_size) {
+	cx_prealloc_pool_init2(pool, 8, element_size);
 }
