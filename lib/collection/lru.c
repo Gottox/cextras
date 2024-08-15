@@ -37,7 +37,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define EMPTY_MARKER SIZE_MAX
+#define EMPTY_MARKER UINT64_MAX
 
 #if 0
 #	include <stdio.h>
@@ -73,36 +73,33 @@ cx_lru_init(
 		return 0;
 	}
 
-	lru->items = calloc(size, sizeof(size_t));
+	lru->items = calloc(size, sizeof(uint64_t));
 	if (lru->items == NULL) {
 		return -CX_ERR_ALLOC;
-	}
-	for (size_t i = 0; i < lru->size; i++) {
-		lru->items[i] = EMPTY_MARKER;
 	}
 	lru->ring_index = 0;
 
 	return 0;
 }
 
-int
-cx_lru_touch(struct CxLru *lru, uint64_t index) {
+static bool
+try_touch(struct CxLru *lru, uint64_t key) {
 	if (lru->size == 0) {
-		return 0;
+		return false;
 	}
 
 	size_t ring_index = lru->ring_index;
 	size_t size = lru->size;
 	void *backend = lru->backend;
 	const struct CxLruBackendImpl *impl = lru->impl;
-	size_t last_index = lru->items[ring_index];
+	uint64_t last_index = ~lru->items[ring_index];
 
 	ring_index = (ring_index + 1) % size;
 
-	size_t old_index = lru->items[ring_index];
+	uint64_t old_index = ~lru->items[ring_index];
 
-	if (old_index == index || last_index == index) {
-		return 0;
+	if (old_index == key || last_index == key) {
+		return false;
 	}
 
 	debug_print(lru, '-', ring_index);
@@ -110,12 +107,25 @@ cx_lru_touch(struct CxLru *lru, uint64_t index) {
 		impl->release(backend, old_index);
 	}
 
-	lru->items[ring_index] = index;
-	debug_print(lru, '+', ring_index);
-	impl->retain(backend, index);
-
+	lru->items[ring_index] = ~key;
 	lru->ring_index = ring_index;
 
+	return true;
+}
+
+int
+cx_lru_touch(struct CxLru *lru, uint64_t key) {
+	if (try_touch(lru, key)) {
+		lru->impl->retain(lru->backend, key);
+	}
+	return 0;
+}
+
+int
+cx_lru_touch_value(struct CxLru *lru, uint64_t key, void *value) {
+	if (try_touch(lru, key)) {
+		lru->impl->retain_value(lru->backend, value);
+	}
 	return 0;
 }
 
@@ -124,7 +134,7 @@ cx_lru_cleanup(struct CxLru *lru) {
 	const struct CxLruBackendImpl *impl = lru->impl;
 
 	for (size_t i = 0; i < lru->size; i++) {
-		size_t index = lru->items[i];
+		size_t index = ~lru->items[i];
 		if (index != EMPTY_MARKER) {
 			impl->release(lru->backend, index);
 		}

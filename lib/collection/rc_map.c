@@ -153,7 +153,7 @@ cx_rc_map_set(struct CxRcMap *array, size_t index, void *data) {
 	return target;
 }
 
-const void *
+void *
 cx_rc_map_retain(struct CxRcMap *array, size_t index) {
 	void *data = NULL;
 
@@ -234,9 +234,17 @@ cx_rc_map_cleanup(struct CxRcMap *array) {
 	return 0;
 }
 
-static const void *
+static void *
 lru_rc_map_retain(void *backend, uint64_t index) {
 	return cx_rc_map_retain(backend, index);
+}
+
+static void
+lru_rc_map_retain_value(void *backend, void *value) {
+	struct CxRcMap *array = backend;
+	(void)value;
+	uint64_t index = ((uint8_t *)value - array->data) / array->element_size;
+	cx_rc_map_retain(backend, index);
 }
 
 static int
@@ -246,5 +254,6 @@ lru_rc_map_release(void *backend, uint64_t index) {
 
 const struct CxLruBackendImpl cx_lru_rc_map = {
 		.retain = lru_rc_map_retain,
+		.retain_value = lru_rc_map_retain_value,
 		.release = lru_rc_map_release,
 };

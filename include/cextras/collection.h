@@ -313,7 +313,7 @@ size_t cx_rc_map_size(const struct CxRcMap *array);
  * @param index The index of the data.
  * @return A pointer to the retained data.
  */
-const void *cx_rc_map_retain(struct CxRcMap *array, cx_index_t index);
+void *cx_rc_map_retain(struct CxRcMap *array, cx_index_t index);
 
 /**
  * @internal
@@ -435,7 +435,7 @@ size_t cx_rc_hash_map_size(const struct CxRcHashMap *hash_map);
  * @param key The key of the data.
  * @return A pointer to the retained data.
  */
-const void *cx_rc_hash_map_retain(struct CxRcHashMap *hash_map, uint64_t key);
+void *cx_rc_hash_map_retain(struct CxRcHashMap *hash_map, uint64_t key);
 
 /**
  * @internal
@@ -491,7 +491,11 @@ struct CxLruBackendImpl {
 	/**
 	 * @brief Function that is called to retain an element.
 	 */
-	const void *(*retain)(void *backend, uint64_t id);
+	void *(*retain)(void *backend, uint64_t key);
+	/**
+	 * @brief Function that is called to retain an element.
+	 */
+	void (*retain_value)(void *backend, void *value);
 	/**
 	 * @brief Function that is called to release an element.
 	 */
@@ -508,7 +512,7 @@ struct CxLru {
 	 */
 	void *backend;
 	const struct CxLruBackendImpl *impl;
-	cx_index_t *items;
+	uint64_t *items;
 	cx_index_t ring_index;
 	size_t size;
 };
@@ -536,7 +540,18 @@ CX_NO_UNUSED int cx_lru_init(
  * @param id The id of the item to touch
  * @return 0 on success, a negative value on error.
  */
-CX_NO_UNUSED int cx_lru_touch(struct CxLru *lru, uint64_t id);
+CX_NO_UNUSED int cx_lru_touch(struct CxLru *lru, uint64_t key);
+
+/**
+ * @internal
+ * @memberof CxLru
+ * @brief marks an item as recently used.
+ * @param lru The LRU cache to mark the item in.
+ * @param id The id of the item to touch
+ * @return 0 on success, a negative value on error.
+ */
+CX_NO_UNUSED int
+cx_lru_touch_value(struct CxLru *lru, uint64_t key, void *value);
 
 /**
  * @internal
@@ -636,7 +651,6 @@ void cx_radix_tree_cleanup(struct CxRadixTree *tree);
 struct CxRcRadixTree {
 	sqsh_rc_map_cleanup_t cleanup;
 	struct CxRadixTree values;
-	struct CxRadixTree rc;
 	size_t element_size;
 };
 
@@ -644,10 +658,10 @@ int cx_rc_radix_tree_init(
 		struct CxRcRadixTree *tree, size_t element_size,
 		sqsh_rc_map_cleanup_t cleanup);
 
-const void *
+void *
 cx_rc_radix_tree_put(struct CxRcRadixTree *tree, uint64_t key, void *value);
 
-const void *cx_rc_radix_tree_retain(struct CxRcRadixTree *tree, uint64_t key);
+void *cx_rc_radix_tree_retain(struct CxRcRadixTree *tree, uint64_t key);
 
 int cx_rc_radix_tree_release(struct CxRcRadixTree *tree, uint64_t key);
 

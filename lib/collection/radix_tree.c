@@ -49,7 +49,7 @@ inner_dump_tree(int index, void *node, uint64_t capacity) {
 	if (capacity == 0) {
 		printf("%02x LEAF: %p\n", index, node);
 	} else {
-		struct CxRadixNode *branch = node;
+		struct CxRadixBranch *branch = node;
 		printf("%02x BRNH: %p\n", index, (void *)branch);
 		for (uint64_t i = 0; i < CX_RADIX_SIZE; i++) {
 			inner_dump_tree(i, branch->children[i], capacity >> CX_RADIX);
@@ -108,13 +108,17 @@ void *
 cx_radix_tree_get(const struct CxRadixTree *tree, uint64_t key) {
 	void *node = tree->root;
 
+	if (key > tree->capacity) {
+		return NULL;
+	}
+
 	key = prepare_key(tree, key);
 
 	uint64_t remaining_capacity = tree->capacity;
 	uint64_t remaining_key = key;
 
 	while (remaining_capacity != 0 && node != NULL) {
-		const uint8_t index = remaining_key & CX_RADIX_MASK;
+		const size_t index = remaining_key & CX_RADIX_MASK;
 		struct CxRadixBranch *branch = node;
 
 		remaining_capacity >>= CX_RADIX;
@@ -141,6 +145,8 @@ cx_radix_tree_new_leaf(struct CxRadixTree *tree, uint64_t key) {
 		return NULL;
 	}
 
+	dump_tree(tree);
+
 	key = prepare_key(tree, key);
 	dump_tree(tree);
 
@@ -154,7 +160,7 @@ cx_radix_tree_new_leaf(struct CxRadixTree *tree, uint64_t key) {
 	uint64_t remaining_key = key;
 
 	while (remaining_capacity != 0) {
-		const uint8_t index = remaining_key & CX_RADIX_MASK;
+		const size_t index = remaining_key & CX_RADIX_MASK;
 		struct CxRadixBranch *branch = node;
 
 		remaining_capacity >>= CX_RADIX;
@@ -186,7 +192,7 @@ cx_radix_tree_delete(struct CxRadixTree *tree, uint64_t key) {
 	uint64_t remaining_key = key;
 
 	while (remaining_capacity != 0 && *node != NULL) {
-		const uint8_t index = remaining_key & CX_RADIX_MASK;
+		const size_t index = remaining_key & CX_RADIX_MASK;
 		struct CxRadixBranch *branch = *node;
 
 		remaining_capacity >>= CX_RADIX;

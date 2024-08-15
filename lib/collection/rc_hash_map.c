@@ -146,7 +146,7 @@ cx_rc_hash_map_size(const struct CxRcHashMap *hash_map) {
 			hash_map->hash_map_count;
 }
 
-const void *
+void *
 cx_rc_hash_map_retain(struct CxRcHashMap *hash_map, uint64_t key) {
 	const size_t size = cx_rc_map_size(&hash_map->hash_maps[0].values);
 	size_t index = key_to_index(key, size);
@@ -210,7 +210,7 @@ cx_rc_hash_map_cleanup(struct CxRcHashMap *hash_map) {
 	return 0;
 }
 
-static const void *
+static void *
 lru_rc_hash_map_retain(void *backend, uint64_t index) {
 	return cx_rc_hash_map_retain(backend, index);
 }
