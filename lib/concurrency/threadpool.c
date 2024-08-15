@@ -236,6 +236,7 @@ cx_threadpool_schedule(
 	int rv = 0;
 	size_t min_queue_length = SIZE_MAX;
 	struct CxWorker *worker = NULL;
+	bool worker_locked = false;
 	struct CxTask *new_task = task_new(threadpool, function, arg);
 	if (new_task == NULL) {
 		goto out;
@@ -250,7 +251,16 @@ cx_threadpool_schedule(
 		}
 	}
 
+	if (worker == NULL) {
+		__builtin_unreachable();
+	}
+
 	rv = pthread_mutex_lock(&worker->queue_mutex);
+	if (rv != 0) {
+		rv = -1;
+		goto out;
+	}
+	worker_locked = true;
 
 	if (worker->tail != NULL) {
 		worker->tail->next = new_task;
@@ -264,7 +274,10 @@ cx_threadpool_schedule(
 	pthread_cond_signal(&worker->queue_cond);
 
 out:
-	pthread_mutex_unlock(&worker->queue_mutex);
+	if (worker_locked) {
+		pthread_mutex_unlock(&worker->queue_mutex);
+	}
+
 	if (rv < 0) {
 		task_free(threadpool, new_task);
 	}
