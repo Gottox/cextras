@@ -31,9 +31,9 @@
  * @file         threadpool.h
  */
 
-#ifndef THREADPOOL_H
+#ifndef CEXTRAS_CONCURRENCY_H
 
-#define THREADPOOL_H
+#define CEXTRAS_CONCURRENCY_H
 
 #include "memory.h"
 #ifdef __cplusplus
@@ -158,7 +158,25 @@ int cx_future_resolve(cx_future_t future, void *value);
  */
 int cx_future_destroy(cx_future_t future);
 
+/***************************************
+ * concurrency/semaphore.c
+ */
+
+struct CxSemaphore {
+	size_t count;
+	pthread_mutex_t mutex;
+	pthread_cond_t cond;
+};
+
+int cx_semaphore_init(struct CxSemaphore *semaphore, size_t count);
+
+int cx_semaphore_wait(struct CxSemaphore *semaphore);
+
+int cx_semaphore_post(struct CxSemaphore *semaphore);
+
+int cx_semaphore_destroy(struct CxSemaphore *semaphore);
+
 #ifdef __cplusplus
 }
 #endif
-#endif // THREADPOOL_H
+#endif // CEXTRAS_CONCURRENCY_H
