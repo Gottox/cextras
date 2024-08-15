@@ -44,17 +44,17 @@
 
 static void
 debug_print(const struct CxLru *lru, const char msg, size_t ring_index) {
-	size_t backend_index = lru->items[ring_index];
+	uint64_t backend_key = lru->items[ring_index];
 
 	fprintf(stderr, "%clru %lu: ", msg, ring_index);
 	size_t sum = 0;
 	for (size_t i = 0; i < lru->size; i++) {
-		size_t cur_index = lru->items[i];
-		if (cur_index == backend_index) {
+		uint64_t cur_key = lru->items[i];
+		if (cur_key == backend_key) {
 			sum++;
 		}
 	}
-	fprintf(stderr, "idx: %lu refs: %lu\n", backend_index, sum);
+	fprintf(stderr, "idx: %lu refs: %lu\n", backend_key, sum);
 	fflush(stderr);
 }
 #else
@@ -78,6 +78,7 @@ cx_lru_init(
 		return -CX_ERR_ALLOC;
 	}
 	lru->ring_index = 0;
+	memset(lru->items, 0xff, size * sizeof(uint64_t));
 
 	return 0;
 }
@@ -92,22 +93,22 @@ try_touch(struct CxLru *lru, uint64_t key) {
 	size_t size = lru->size;
 	void *backend = lru->backend;
 	const struct CxLruBackendImpl *impl = lru->impl;
-	uint64_t last_index = ~lru->items[ring_index];
+	uint64_t last_key = lru->items[ring_index];
 
 	ring_index = (ring_index + 1) % size;
 
-	uint64_t old_index = ~lru->items[ring_index];
+	uint64_t old_key = lru->items[ring_index];
 
-	if (old_index == key || last_index == key) {
+	if (old_key == key || last_key == key) {
 		return false;
 	}
 
 	debug_print(lru, '-', ring_index);
-	if (old_index != EMPTY_MARKER) {
-		impl->release(backend, old_index);
+	if (old_key != EMPTY_MARKER) {
+		impl->release(backend, old_key);
 	}
 
-	lru->items[ring_index] = ~key;
+	lru->items[ring_index] = key;
 	lru->ring_index = ring_index;
 
 	return true;
@@ -134,9 +135,9 @@ cx_lru_cleanup(struct CxLru *lru) {
 	const struct CxLruBackendImpl *impl = lru->impl;
 
 	for (size_t i = 0; i < lru->size; i++) {
-		size_t index = ~lru->items[i];
-		if (index != EMPTY_MARKER) {
-			impl->release(lru->backend, index);
+		uint64_t key = lru->items[i];
+		if (key != EMPTY_MARKER) {
+			impl->release(lru->backend, key);
 		}
 	}
 	free(lru->items);
