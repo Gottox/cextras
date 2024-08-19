@@ -318,6 +318,17 @@ void *cx_rc_map_retain(struct CxRcMap *array, cx_index_t index);
 /**
  * @internal
  * @memberof CxRcMap
+ * @brief Retains the data at a specified index in a reference-counted array.
+ *
+ * @param array The array containing the data.
+ * @param index The index of the data.
+ * @return A pointer to the retained data.
+ */
+void cx_rc_map_retain_value(struct CxRcMap *array, const void *element);
+
+/**
+ * @internal
+ * @memberof CxRcMap
  * @brief Releases the reference to the data at a specified index in a
  * reference-counted array.
  *
@@ -662,6 +673,9 @@ void *
 cx_rc_radix_tree_put(struct CxRcRadixTree *tree, uint64_t key, void *value);
 
 void *cx_rc_radix_tree_retain(struct CxRcRadixTree *tree, uint64_t key);
+
+void
+cx_rc_radix_tree_retain_value(struct CxRcRadixTree *tree, const void *value);
 
 int cx_rc_radix_tree_release(struct CxRcRadixTree *tree, uint64_t key);
 

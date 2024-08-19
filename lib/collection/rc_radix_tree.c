@@ -108,6 +108,13 @@ cx_rc_radix_tree_retain(struct CxRcRadixTree *tree, uint64_t key) {
 	return OBJ_DATA(obj);
 }
 
+void
+cx_rc_radix_tree_retain_value(struct CxRcRadixTree *tree, const void *value) {
+	(void)tree;
+	rc_t *obj = ((rc_t *)value) - 1;
+	OBJ_RC(obj)++;
+}
+
 int
 cx_rc_radix_tree_cleanup(struct CxRcRadixTree *tree) {
 	cx_radix_tree_cleanup(&tree->values);
@@ -121,9 +128,7 @@ lru_rc_radix_tree_retain(void *backend, uint64_t index) {
 
 static void
 lru_rc_radix_tree_retain_value(void *backend, void *value) {
-	(void)backend;
-	rc_t *obj = ((rc_t *)value) - 1;
-	OBJ_RC(obj)++;
+	cx_rc_radix_tree_retain_value(backend, value);
 }
 
 static int

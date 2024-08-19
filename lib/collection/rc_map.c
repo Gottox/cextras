@@ -166,6 +166,18 @@ cx_rc_map_retain(struct CxRcMap *array, size_t index) {
 	return data;
 }
 
+void
+cx_rc_map_retain_value(struct CxRcMap *array, const void *element) {
+	if (element == NULL) {
+		return;
+	}
+
+	const size_t index =
+			((uint8_t *)element - array->data) / array->element_size;
+
+	cx_rc_map_retain(array, index);
+}
+
 int
 cx_rc_map_release(struct CxRcMap *array, const void *element) {
 	if (element == NULL) {
