@@ -68,7 +68,7 @@ round_to_next_pow2(size_t *val) {
 			return -CX_ERR_INTEGER_OVERFLOW;
 		}
 		// Set the bit at the position of the first 0 to 1
-		*val = 1ULL << (sizeof(size_t) * 8 - leading_zeros);
+		*val = 1ULL << (sizeof(long long) * 8 - leading_zeros);
 	}
 	return 0;
 }
