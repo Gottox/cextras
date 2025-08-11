@@ -115,7 +115,7 @@ main(int argc, char *argv[]) {
 
 	if (argc < 1) {
 		fprintf(stderr,
-				"Usage: %s [-c always|never|auto] [-e] [-l] [test...]\n",
+				"Usage: %s [-c always|never|auto] [-n] [-v] [-l] [test...]\n",
 				argv[0]);
 		exit(EXIT_FAILURE);
 	}

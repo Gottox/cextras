@@ -41,16 +41,16 @@ struct TestlibTest {
 #define ASSERT_FALSE(a) ASSERT(!(a))
 #define ASSERT_EQ(a, b) ASSERT((a) == (b))
 #define ASSERT_NE(a, b) ASSERT((a) != (b))
-#define ASSERT_STREQ(a, b) \
-	if (strcmp((a), (b))) { \
-		printf("Assertion failed: %s != %s\n", #a, #b); \
-		printf("Assertion actual: %s != %s\n", a, b); \
+#define ASSERT_STREQ(a, b, size) \
+	if (strncmp((a), (b), size)) { \
+		printf("Assertion failed: %s == %s\n", #a, #b); \
+		printf("Assertion actual: %s == %s\n", a, b); \
 		abort(); \
 	}
 #define ASSERT_STRNEQ(a, b, size) \
 	if (!strncmp((a), (b), size)) { \
-		printf("Assertion failed: %s == %s\n", #a, #b); \
-		printf("Assertion actual: %s == %s\n", a, b); \
+		printf("Assertion failed: %s != %s\n", #a, #b); \
+		printf("Assertion actual: %s != %s\n", a, b); \
 		abort(); \
 	}
 #define ASSERT_GT(a, b) ASSERT((a) > (b))
