@@ -7,6 +7,10 @@
 #ifndef TESTLIB_H
 #define TESTLIB_H
 
+#include <inttypes.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -32,31 +36,66 @@ struct TestlibTest {
 	} \
 	;
 
+#define FAIL(f, ...) \
+	((void)printf("%s:%i: " f "\n", __FILE__, __LINE__, __VA_ARGS__), \
+	 (void)abort())
 #define ASSERT(a) \
-	if (!(a)) { \
-		printf("Assertion failed: %s\n", #a); \
-		abort(); \
-	}
+	do { \
+		if (!(a)) { \
+			FAIL("%s", #a); \
+		} \
+	} while (0)
 #define ASSERT_TRUE(a) ASSERT(a)
 #define ASSERT_FALSE(a) ASSERT(!(a))
-#define ASSERT_EQ(a, b) ASSERT((a) == (b))
-#define ASSERT_NE(a, b) ASSERT((a) != (b))
-#define ASSERT_STREQ(a, b, size) \
-	if (strncmp((a), (b), size)) { \
-		printf("Assertion failed: %s == %s\n", #a, #b); \
-		printf("Assertion actual: %s == %s\n", a, b); \
-		abort(); \
-	}
-#define ASSERT_STRNEQ(a, b, size) \
-	if (!strncmp((a), (b), size)) { \
-		printf("Assertion failed: %s != %s\n", #a, #b); \
-		printf("Assertion actual: %s != %s\n", a, b); \
-		abort(); \
-	}
-#define ASSERT_GT(a, b) ASSERT((a) > (b))
-#define ASSERT_LT(a, b) ASSERT((a) < (b))
-#define ASSERT_GE(a, b) ASSERT((a) >= (b))
-#define ASSERT_LE(a, b) ASSERT((a) <= (b))
+//#define ASSERT_POINTER(a) (void)*(a)
+#define ASSERT_POINTER(a)
+#define ASSERT_NULL(a) \
+	do { \
+		ASSERT_POINTER(a); \
+		ASSERT_FALSE(a); \
+	} while (0)
+#define ASSERT_NOT_NULL(a) \
+	do { \
+		ASSERT_POINTER(a); \
+		ASSERT(a); \
+	} while (0)
+#define ASSERT_STREQS(a, b, s) \
+	do { \
+		if (strncmp((a), (b), (s))) { \
+			FAIL("%s == %s; %s == %s", #a, #b, a, b); \
+		} \
+	} while (0)
+#define ASSERT_STRNEQS(a, b, s) \
+	do { \
+		if (!strncmp((a), (b), (s))) { \
+			FAIL("%s == %s; %s == %s", #a, #b, a, b); \
+		} \
+	} while (0)
+#define ASSERT_STREQ(a, b) \
+	do { \
+		if (strcmp((a), (b))) { \
+			FAIL("%s == %s; %s == %s", #a, #b, a, b); \
+		} \
+	} while (0)
+#define ASSERT_STRNEQ(a, b) \
+	do { \
+		if (!strcmp((a), (b))) { \
+			FAIL("%s == %s; %s == %s", #a, #b, a, b); \
+		} \
+	} while (0)
+#define ASSERT_OP(a, op, b) \
+	do { \
+		if (!((a)op(b))) { \
+			FAIL("%s " #op " %s; %" PRIxPTR " " #op "%" PRIxPTR, #a, #b, \
+				 (intptr_t)a, (intptr_t)b); \
+		} \
+	} while (0)
+#define ASSERT_EQ(a, b) ASSERT_OP(a, ==, b)
+#define ASSERT_NE(a, b) ASSERT_OP(a, !=, b)
+#define ASSERT_GT(a, b) ASSERT_OP(a, >, b)
+#define ASSERT_LT(a, b) ASSERT_OP(a, <, b)
+#define ASSERT_GE(a, b) ASSERT_OP(a, >=, b)
+#define ASSERT_LE(a, b) ASSERT_OP(a, <=, b)
 
 #
 
