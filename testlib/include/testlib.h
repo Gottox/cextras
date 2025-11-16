@@ -55,6 +55,8 @@ struct TestlibTest {
 	}
 #define ASSERT_GT(a, b) ASSERT((a) > (b))
 #define ASSERT_LT(a, b) ASSERT((a) < (b))
+#define ASSERT_GE(a, b) ASSERT((a) >= (b))
+#define ASSERT_LE(a, b) ASSERT((a) <= (b))
 
 #
 
