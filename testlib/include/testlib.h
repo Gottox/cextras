@@ -86,7 +86,7 @@ struct TestlibTest {
 #define ASSERT_OP(a, op, b) \
 	do { \
 		if (!((a)op(b))) { \
-			FAIL("%s " #op " %s; %" PRIxPTR " " #op "%" PRIxPTR, #a, #b, \
+			FAIL("%s " #op " %s; %" PRIxPTR " " #op " %" PRIxPTR, #a, #b, \
 				 (intptr_t)a, (intptr_t)b); \
 		} \
 	} while (0)
