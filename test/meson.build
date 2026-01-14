@@ -32,6 +32,8 @@ foreach test : tests
     test(
         test,
         test_exe,
+        args: ['-t'],
+        protocol: 'tap',
         timeout: 5,
     )
 endforeach

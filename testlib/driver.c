@@ -27,7 +27,7 @@ static const char *color_reset = "";
 static char **patterns = NULL;
 static int pattern_count = 0;
 static bool verbose = false;
-static bool tap_output = false;
+static FILE *tap_output = NULL;
 
 static void
 color_on(char *opt) {
@@ -75,12 +75,13 @@ T_______TEST_BEGINS_ABOVE_______T(
 			fprintf(stderr, "%s -n '%s'\n IGNORED\n", program_name, test->name);
 		}
 		if (tap_output) {
-			printf("ok %zu - # SKIP %s\n", index + 1, test->name);
+			fprintf(tap_output, "ok %zu - # SKIP %s\n", index + 1, test->name);
 		}
 	} else if (test->enabled == false) {
 		fprintf(stderr, "%s -n '%s'\n DISABLED\n", program_name, test->name);
 		if (tap_output) {
-			printf("ok %zu # - SKIP %s (disabled)\n", index + 1, test->name);
+			fprintf(tap_output, "ok %zu # - SKIP %s (disabled)\n", index + 1,
+					test->name);
 		}
 	} else {
 		clock_t time = clock();
@@ -90,7 +91,7 @@ T_______TEST_BEGINS_ABOVE_______T(
 		fprintf(stderr, "%s finished in %.3lfms\n", color_reset,
 				(double)(clock() - time) * 1000.0 / (double)CLOCKS_PER_SEC);
 		if (tap_output) {
-			printf("ok %zu - %s\n", index + 1, test->name);
+			fprintf(tap_output, "ok %zu - %s\n", index + 1, test->name);
 		}
 	}
 	return 0;
@@ -100,6 +101,9 @@ static int
 run_test_forked(const struct TestlibTest *test, size_t index) {
 	fflush(stdout);
 	fflush(stderr);
+	if (tap_output) {
+		fflush(tap_output);
+	}
 
 	int pid = fork();
 	if (pid > 0) {
@@ -111,7 +115,7 @@ run_test_forked(const struct TestlibTest *test, size_t index) {
 			exitcode = WEXITSTATUS(status);
 		}
 		if (tap_output && exitcode != 0) {
-			printf("not ok %zu - %s\n", index + 1, test->name);
+			fprintf(tap_output, "not ok %zu - %s\n", index + 1, test->name);
 		}
 		return exitcode;
 	} else if (pid < 0) {
@@ -126,6 +130,7 @@ run_test_forked(const struct TestlibTest *test, size_t index) {
 
 int
 main(int argc, char *argv[]) {
+	int fd = -1;
 	bool non_fork = false;
 	int opt;
 	int rv = 0;
@@ -157,7 +162,12 @@ main(int argc, char *argv[]) {
 			}
 			exit(EXIT_SUCCESS);
 		case 't':
-			tap_output = true;
+			tap_output = stdout;
+			fflush(stderr);
+			fflush(stdout);
+			fd = dup(STDOUT_FILENO);
+			tap_output = fdopen(fd, "w");
+			dup2(STDERR_FILENO, STDOUT_FILENO);
 			break;
 		default:
 			fprintf(stderr,
@@ -180,7 +190,7 @@ main(int argc, char *argv[]) {
 		size_t test_count = 0;
 		for (; testlib_tests[test_count].name != NULL; test_count++) {
 		}
-		printf("1..%zu\n", test_count);
+		fprintf(tap_output, "1..%zu\n", test_count);
 	}
 	for (size_t i = 0; testlib_tests[i].name != NULL; i++) {
 		const struct TestlibTest *test = &testlib_tests[i];
