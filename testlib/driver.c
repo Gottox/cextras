@@ -27,6 +27,7 @@ static const char *color_reset = "";
 static char **patterns = NULL;
 static int pattern_count = 0;
 static bool verbose = false;
+static bool tap_output = false;
 
 static void
 color_on(char *opt) {
@@ -58,7 +59,8 @@ color_on(char *opt) {
 }
 
 static int
-T_______TEST_BEGINS_ABOVE_______T(const struct TestlibTest *test) {
+T_______TEST_BEGINS_ABOVE_______T(
+		const struct TestlibTest *test, size_t index) {
 	bool found = true;
 	for (int i = 0; i < pattern_count; i++) {
 		found = false;
@@ -72,8 +74,14 @@ T_______TEST_BEGINS_ABOVE_______T(const struct TestlibTest *test) {
 		if (verbose) {
 			fprintf(stderr, "%s -n '%s'\n IGNORED\n", program_name, test->name);
 		}
+		if (tap_output) {
+			printf("ok %zu - # SKIP %s\n", index + 1, test->name);
+		}
 	} else if (test->enabled == false) {
 		fprintf(stderr, "%s -n '%s'\n DISABLED\n", program_name, test->name);
+		if (tap_output) {
+			printf("ok %zu # - SKIP %s (disabled)\n", index + 1, test->name);
+		}
 	} else {
 		clock_t time = clock();
 		fprintf(stderr, "%s%s -n '%s'%s\n", color_reset, program_name,
@@ -81,12 +89,18 @@ T_______TEST_BEGINS_ABOVE_______T(const struct TestlibTest *test) {
 		test->func();
 		fprintf(stderr, "%s finished in %.3lfms\n", color_reset,
 				(double)(clock() - time) * 1000.0 / (double)CLOCKS_PER_SEC);
+		if (tap_output) {
+			printf("ok %zu - %s\n", index + 1, test->name);
+		}
 	}
 	return 0;
 }
 
 static int
-run_test_forked(const struct TestlibTest *test) {
+run_test_forked(const struct TestlibTest *test, size_t index) {
+	fflush(stdout);
+	fflush(stderr);
+
 	int pid = fork();
 	if (pid > 0) {
 		int exitcode = -1;
@@ -96,13 +110,16 @@ run_test_forked(const struct TestlibTest *test) {
 		if (WIFEXITED(status)) {
 			exitcode = WEXITSTATUS(status);
 		}
+		if (tap_output && exitcode != 0) {
+			printf("not ok %zu - %s\n", index + 1, test->name);
+		}
 		return exitcode;
 	} else if (pid < 0) {
 		perror("fork");
 		exit(EXIT_FAILURE);
 	}
 
-	T_______TEST_BEGINS_ABOVE_______T(test);
+	T_______TEST_BEGINS_ABOVE_______T(test, index);
 
 	exit(EXIT_SUCCESS);
 }
@@ -115,14 +132,15 @@ main(int argc, char *argv[]) {
 
 	if (argc < 1) {
 		fprintf(stderr,
-				"Usage: %s [-c always|never|auto] [-n] [-v] [-l] [test...]\n",
+				"Usage: %s [-c always|never|auto] [-n] [-v] [-l] [-t] "
+				"[test...]\n",
 				argv[0]);
 		exit(EXIT_FAILURE);
 	}
 	strncpy(program_name, argv[0], sizeof(program_name) - 1);
 
 	color_on("auto");
-	while ((opt = getopt(argc, argv, "nlcv:")) != -1) {
+	while ((opt = getopt(argc, argv, "ntlcv:")) != -1) {
 		switch (opt) {
 		case 'n':
 			non_fork = true;
@@ -138,6 +156,9 @@ main(int argc, char *argv[]) {
 				printf("%s\n", testlib_tests[i].name);
 			}
 			exit(EXIT_SUCCESS);
+		case 't':
+			tap_output = true;
+			break;
 		default:
 			fprintf(stderr,
 					"Usage: %s [-c always|never|auto] [-e] [-l] [test...]\n",
@@ -149,16 +170,22 @@ main(int argc, char *argv[]) {
 	patterns = &argv[optind];
 	pattern_count = argc - optind;
 
-	int (*run_test)(const struct TestlibTest *);
+	int (*run_test)(const struct TestlibTest *, size_t i);
 	if (non_fork) {
 		run_test = T_______TEST_BEGINS_ABOVE_______T;
 	} else {
 		run_test = run_test_forked;
 	}
-	for (int i = 0; testlib_tests[i].name != NULL; i++) {
+	if (tap_output) {
+		size_t test_count = 0;
+		for (; testlib_tests[test_count].name != NULL; test_count++) {
+		}
+		printf("1..%zu\n", test_count);
+	}
+	for (size_t i = 0; testlib_tests[i].name != NULL; i++) {
 		const struct TestlibTest *test = &testlib_tests[i];
 
-		rv |= run_test(test);
+		rv |= run_test(test, i);
 		if (rv != 0 && non_fork) {
 			break;
 		}
