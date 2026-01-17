@@ -383,7 +383,7 @@ extern const struct CxLruBackendImpl cx_lru_rc_map;
  * primitive/rc_hash_map.c
  */
 
-struct CxRcHashMapInner;
+struct CxRcHashSlot;
 
 /**
  * @brief A reference-counted hash map.
@@ -392,9 +392,10 @@ struct CxRcHashMap {
 	/**
 	 * @privatesection
 	 */
-	struct CxRcHashMapInner *hash_maps;
-	size_t hash_map_count;
-	size_t map_size;
+	struct CxRcHashSlot *slots;
+	struct CxPreallocPool pool;
+	size_t capacity;
+	size_t count;
 	size_t element_size;
 	sqsh_rc_map_cleanup_t cleanup;
 };
@@ -424,7 +425,7 @@ CX_NO_UNUSED int cx_rc_hash_map_init(
  * @param data The data to set.
  * @return 0 on success, a negative value on error.
  */
-const void *
+void *
 cx_rc_hash_map_put(struct CxRcHashMap *hash_map, uint64_t key, void *data);
 
 /**

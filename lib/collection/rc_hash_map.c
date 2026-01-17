@@ -28,69 +28,209 @@
 
 /**
  * @author       Enno Boland (mail@eboland.de)
- * @file         rc_map.c
+ * @file         rc_hash_map.c
  */
 
 #include "../../include/cextras/collection.h"
 #include "../../include/cextras/error.h"
+#include "../../include/cextras/memory.h"
 
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
-#define COLLISION_RESERVE_BITS 2
-#define MAX_COLLISIONS 5
+#define LOAD_NUMER 3
+#define LOAD_DENOM 4
+#define MAX_PSL 128
 
-struct CxRcHashMapInner {
-	uint64_t *keys;
-	struct CxRcMap values;
-	size_t count;
+enum SlotState {
+	SLOT_EMPTY = 0,
+	SLOT_OCCUPIED = 1,
+	SLOT_TOMBSTONE = 2,
+};
+
+struct CxRcHashSlot {
+	uint64_t key;
+	size_t ref_count;
+	void *data;
+	uint8_t state;
+	uint8_t psl;
 };
 
 static uint64_t
-djb2_hash(const void *data, const size_t size) {
-	uint64_t hash = 5381;
-	const uint8_t *p = data;
-	for (size_t i = 0; i < size; i++) {
-		hash = ((hash << 5) + hash) + p[i];
-	}
-	return hash;
+hash_key(uint64_t key) {
+	key ^= key >> 33;
+	key *= 0xff51afd7ed558ccdULL;
+	key ^= key >> 33;
+	key *= 0xc4ceb9fe1a85ec53ULL;
+	key ^= key >> 33;
+	return key;
 }
 
 static size_t
-key_to_index(const uint64_t key, const size_t size) {
-	size_t hash = djb2_hash(&key, sizeof(uint64_t));
+key_to_index(uint64_t key, size_t capacity) {
+	return hash_key(key) % capacity;
+}
 
-	/* reserve the lower COLLISION_RESERVE_BITS bits for collisions. */
-	hash <<= COLLISION_RESERVE_BITS;
-	return hash % size;
+static bool
+hash_map_needs_resize(struct CxRcHashMap *hash_map) {
+	return hash_map->count * LOAD_DENOM >= hash_map->capacity * LOAD_NUMER;
+}
+
+static struct CxRcHashSlot *
+key_to_slot(struct CxRcHashMap *hash_map, uint64_t key) {
+	if (hash_map->capacity == 0) {
+		return NULL;
+	}
+
+	size_t index = key_to_index(key, hash_map->capacity);
+	uint8_t psl = 0;
+
+	while (psl <= MAX_PSL) {
+		struct CxRcHashSlot *slot = &hash_map->slots[index];
+
+		if (slot->state == SLOT_EMPTY) {
+			return NULL;
+		}
+
+		if (slot->state == SLOT_OCCUPIED && slot->key == key) {
+			return slot;
+		}
+
+		if (slot->state == SLOT_OCCUPIED && slot->psl < psl) {
+			return NULL;
+		}
+
+		psl++;
+		index = (index + 1) % hash_map->capacity;
+	}
+
+	return NULL;
+}
+
+static struct CxRcHashSlot *
+element_to_slot(struct CxRcHashMap *hash_map, const void *element) {
+	uint64_t key;
+
+	// We can't be sure that the element is properly aligned, so we use memcpy
+	// to avoid undefined behavior.
+	memcpy(&key, &((uint8_t *)element)[hash_map->element_size], sizeof(key));
+
+	return key_to_slot(hash_map, key);
+}
+
+static void
+robin_hood_insert_slot(
+		struct CxRcHashSlot *slots, size_t capacity,
+		const struct CxRcHashSlot *slot) {
+	struct CxRcHashSlot cur;
+	memcpy(&cur, slot, sizeof(struct CxRcHashSlot));
+	size_t index = key_to_index(cur.key, capacity);
+	uint8_t psl = 0;
+
+	while (psl <= MAX_PSL) {
+		struct CxRcHashSlot tmp;
+		memcpy(&tmp, &slots[index], sizeof(tmp));
+
+		if (tmp.state == SLOT_EMPTY || tmp.state == SLOT_TOMBSTONE) {
+			cur.psl = psl;
+			memcpy(&slots[index], &cur, sizeof(struct CxRcHashSlot));
+			return;
+		}
+
+		if (tmp.psl < psl) {
+			cur.psl = psl;
+			memcpy(&slots[index], &cur, sizeof(struct CxRcHashSlot));
+			memcpy(&cur, &tmp, sizeof(struct CxRcHashSlot));
+			psl = cur.psl;
+		}
+
+		psl++;
+		index = (index + 1) % capacity;
+	}
 }
 
 static int
-extend_hash_map(struct CxRcHashMap *hash_map) {
-	size_t new_size;
-	const size_t last_index = hash_map->hash_map_count;
-	struct CxRcHashMapInner *hash_maps;
+hash_map_grow(struct CxRcHashMap *hash_map) {
+	size_t new_capacity;
+	struct CxRcHashSlot *new_slots;
+	struct CxRcHashSlot *old_slots = ((struct CxRcHashSlot *)hash_map->slots);
+	size_t old_capacity = hash_map->capacity;
 
-	if (CX_ADD_OVERFLOW(hash_map->hash_map_count, 1, &new_size)) {
-		return -CX_ERR_INTEGER_OVERFLOW;
-	}
-	hash_map->hash_map_count = new_size;
-	if (CX_MUL_OVERFLOW(new_size, sizeof(struct CxRcHashMapInner), &new_size)) {
+	if (CX_MUL_OVERFLOW(hash_map->capacity, 2, &new_capacity)) {
 		return -CX_ERR_INTEGER_OVERFLOW;
 	}
 
-	hash_map->hash_maps = realloc(hash_map->hash_maps, new_size);
-	hash_maps = &hash_map->hash_maps[last_index];
-
-	hash_maps->keys = calloc(hash_map->map_size, sizeof(uint64_t));
-	if (hash_maps->keys == NULL) {
+	new_slots = (struct CxRcHashSlot *)calloc(new_capacity, sizeof(*new_slots));
+	if (new_slots == NULL) {
 		return -CX_ERR_ALLOC;
 	}
 
-	return cx_rc_map_init(
-			&hash_maps->values, hash_map->map_size, hash_map->element_size,
-			hash_map->cleanup);
+	for (size_t i = 0; i < old_capacity; i++) {
+		if (old_slots[i].state == SLOT_OCCUPIED) {
+			robin_hood_insert_slot(new_slots, new_capacity, &old_slots[i]);
+		}
+	}
+
+	free(old_slots);
+	hash_map->slots = new_slots;
+	hash_map->capacity = new_capacity;
+
+	return 0;
+}
+
+static void *
+hash_map_insert(struct CxRcHashMap *hash_map, uint64_t key, void *data) {
+	size_t index = key_to_index(key, hash_map->capacity);
+
+	void *new_data = cx_prealloc_pool_get(&hash_map->pool);
+	if (new_data == NULL) {
+		return NULL;
+	}
+	memcpy(new_data, data, hash_map->element_size);
+	uint8_t *key_data = &((uint8_t *)new_data)[hash_map->element_size];
+	memcpy(key_data, &key, sizeof(key));
+
+	struct CxRcHashSlot cur = {
+			.key = key,
+			.ref_count = 0,
+			.data = new_data,
+			.state = SLOT_OCCUPIED,
+			.psl = 0,
+	};
+
+	void *result = new_data;
+	uint8_t psl = 0;
+
+	while (psl <= MAX_PSL) {
+		struct CxRcHashSlot *slot = &hash_map->slots[index];
+
+		if (slot->state == SLOT_EMPTY || slot->state == SLOT_TOMBSTONE) {
+			cur.psl = psl;
+			*slot = cur;
+			hash_map->count++;
+			return result;
+		}
+
+		if (slot->state == SLOT_OCCUPIED && slot->key == cur.key) {
+			cx_prealloc_pool_recycle(&hash_map->pool, new_data);
+			return slot->data;
+		}
+
+		if (slot->psl < psl) {
+			cur.psl = psl;
+			struct CxRcHashSlot tmp = *slot;
+			*slot = cur;
+			cur = tmp;
+			psl = cur.psl;
+		}
+
+		psl++;
+		index = (index + 1) % hash_map->capacity;
+	}
+
+	cx_prealloc_pool_recycle(&hash_map->pool, new_data);
+	return NULL;
 }
 
 int
@@ -98,102 +238,97 @@ cx_rc_hash_map_init(
 		struct CxRcHashMap *hash_map, size_t size, size_t element_size,
 		sqsh_rc_map_cleanup_t cleanup) {
 	memset(hash_map, 0, sizeof(*hash_map));
-	hash_map->hash_maps = NULL;
-	hash_map->hash_map_count = 0;
-	hash_map->map_size = size;
+
+	hash_map->slots = calloc(size, sizeof(struct CxRcHashSlot));
+	if (hash_map->slots == NULL) {
+		return -CX_ERR_ALLOC;
+	}
+
+	size_t pool_size = sizeof(uint64_t) + element_size;
+	cx_prealloc_pool_init(&hash_map->pool, pool_size);
+
+	hash_map->capacity = size;
+	hash_map->count = 0;
 	hash_map->element_size = element_size;
 	hash_map->cleanup = cleanup;
-	return extend_hash_map(hash_map);
+
+	return 0;
 }
 
-const void *
+void *
 cx_rc_hash_map_put(struct CxRcHashMap *hash_map, uint64_t key, void *data) {
-	int rv = 0;
-	const size_t size = cx_rc_map_size(&hash_map->hash_maps[0].values);
-	const size_t orig_index = key_to_index(key, size);
-	size_t index = orig_index;
-	struct CxRcMap *values = NULL;
-	uint64_t *keys = NULL;
+	int rv;
+	struct CxRcHashSlot *slot = key_to_slot(hash_map, key);
 
-	for (size_t i = 0; i < size && i < MAX_COLLISIONS; i++, index++) {
-		index = index % size;
+	if (slot != NULL) {
+		hash_map->cleanup(data);
+		slot->ref_count++;
+		return slot->data;
+	}
 
-		for (size_t j = 0; j < hash_map->hash_map_count; j++) {
-			values = &hash_map->hash_maps[j].values;
-			keys = hash_map->hash_maps[j].keys;
-			if (cx_rc_map_is_empty(values, index) || keys[index] == key) {
-				goto found;
-			}
+	if (hash_map_needs_resize(hash_map)) {
+		rv = hash_map_grow(hash_map);
+		if (rv < 0) {
+			return NULL;
 		}
 	}
 
-	index = orig_index;
-	rv = extend_hash_map(hash_map);
-	if (rv < 0) {
-		return NULL;
+	void *result = hash_map_insert(hash_map, key, data);
+	if (result == NULL) {
+		rv = hash_map_grow(hash_map);
+		if (rv < 0) {
+			return NULL;
+		}
+		result = hash_map_insert(hash_map, key, data);
 	}
-	values = &hash_map->hash_maps[hash_map->hash_map_count - 1].values;
-	keys = hash_map->hash_maps[hash_map->hash_map_count - 1].keys;
 
-found:
-	keys[index] = key;
-	return cx_rc_map_set(values, index, data);
+	return result;
 }
 
 size_t
 cx_rc_hash_map_size(const struct CxRcHashMap *hash_map) {
-	return cx_rc_map_size(&hash_map->hash_maps[0].values) *
-			hash_map->hash_map_count;
+	return hash_map->capacity;
 }
 
 void *
 cx_rc_hash_map_retain(struct CxRcHashMap *hash_map, uint64_t key) {
-	const size_t size = cx_rc_map_size(&hash_map->hash_maps[0].values);
-	size_t index = key_to_index(key, size);
+	struct CxRcHashSlot *slot = key_to_slot(hash_map, key);
 
-	for (size_t i = 0; i < size && i < MAX_COLLISIONS; i++, index++) {
-		index = index % size;
-
-		for (size_t j = 0; j < hash_map->hash_map_count; j++) {
-			struct CxRcMap *values = &hash_map->hash_maps[j].values;
-			uint64_t *keys = hash_map->hash_maps[j].keys;
-			if (keys[index] == key) {
-				return cx_rc_map_retain(values, index);
-			}
-		}
+	if (slot != NULL) {
+		slot->ref_count++;
+		return slot->data;
 	}
 
 	return NULL;
 }
 
+static void
+release_slot(struct CxRcHashMap *hash_map, struct CxRcHashSlot *slot) {
+	if (slot->ref_count == 0) {
+		hash_map->cleanup(slot->data);
+		cx_prealloc_pool_recycle(&hash_map->pool, slot->data);
+		slot->state = SLOT_TOMBSTONE;
+		slot->data = NULL;
+		hash_map->count--;
+	} else {
+		slot->ref_count--;
+	}
+}
 int
 cx_rc_hash_map_release(struct CxRcHashMap *hash_map, const void *element) {
-	for (size_t i = 0; i < hash_map->hash_map_count; i++) {
-		struct CxRcMap *values = &hash_map->hash_maps[i].values;
+	struct CxRcHashSlot *slot = element_to_slot(hash_map, element);
 
-		if (cx_rc_map_contains(values, element)) {
-			return cx_rc_map_release(values, element);
-		}
-	}
+	release_slot(hash_map, slot);
 
-	return -CX_ERR_NOT_FOUND;
+	return 0;
 }
 
 int
 cx_rc_hash_map_release_key(struct CxRcHashMap *hash_map, uint64_t key) {
-	const size_t size = cx_rc_map_size(&hash_map->hash_maps[0].values);
-	size_t index = key_to_index(key, size);
+	struct CxRcHashSlot *slot = key_to_slot(hash_map, key);
 
-	for (size_t i = 0; i < size; i++, index++) {
-		index = index % size;
-
-		for (size_t j = 0; j < hash_map->hash_map_count; j++) {
-			struct CxRcMap *values = &hash_map->hash_maps[j].values;
-			uint64_t *keys = hash_map->hash_maps[j].keys;
-			if (keys[index] == key) {
-				return cx_rc_map_release_index(values, index);
-			}
-		}
+	if (slot != NULL) {
+		release_slot(hash_map, slot);
 	}
 
 	return 0;
@@ -201,11 +336,11 @@ cx_rc_hash_map_release_key(struct CxRcHashMap *hash_map, uint64_t key) {
 
 int
 cx_rc_hash_map_cleanup(struct CxRcHashMap *hash_map) {
-	for (size_t i = 0; i < hash_map->hash_map_count; i++) {
-		free(hash_map->hash_maps[i].keys);
-		cx_rc_map_cleanup(&hash_map->hash_maps[i].values);
-	}
-	free(hash_map->hash_maps);
+	free(hash_map->slots);
+	cx_prealloc_pool_cleanup(&hash_map->pool);
+	hash_map->slots = NULL;
+	hash_map->capacity = 0;
+	hash_map->count = 0;
 
 	return 0;
 }

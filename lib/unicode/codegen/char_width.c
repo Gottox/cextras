@@ -49,7 +49,7 @@ parse_range(char *line, int field_nbr, struct Range *range) {
 	return -1;
 }
 
-static int
+static size_t
 find_max(FILE *file, int field_nbr) {
 	char *line = NULL;
 	ssize_t line_len = 0;
@@ -71,8 +71,8 @@ find_max(FILE *file, int field_nbr) {
 }
 
 static bool *
-generate_flat_table(FILE *file, int codepoint_size, int field_nbr) {
-	bool *table = calloc(codepoint_size, sizeof(bool));
+generate_flat_table(FILE *file, size_t codepoint_size, int field_nbr) {
+	bool *table = (bool *)calloc(codepoint_size, sizeof(bool));
 	char *line = NULL;
 	ssize_t line_len = 0;
 	size_t line_capacity = 0;
@@ -91,7 +91,6 @@ generate_flat_table(FILE *file, int codepoint_size, int field_nbr) {
 }
 
 #define DIVIDE_CEIL(x, y) ((x) / (y) + !!((x) % (y)))
-#define PADDING(x, p) (SQSH_DIVIDE_CEIL(x, p) * p)
 
 static void
 print_radix_table(
