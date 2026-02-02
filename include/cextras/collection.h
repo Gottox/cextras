@@ -380,10 +380,96 @@ int cx_rc_map_cleanup(struct CxRcMap *array);
 extern const struct CxLruBackendImpl cx_lru_rc_map;
 
 /***************************************
- * primitive/rc_hash_map.c
+ * collection/hash_map.c
  */
 
-struct CxRcHashSlot;
+struct CxHashSlot;
+
+/**
+ * @brief A hash map.
+ */
+struct CxHashMap {
+	/**
+	 * @privatesection
+	 */
+	struct CxHashSlot *slots;
+	size_t capacity;
+	size_t count;
+	size_t element_size;
+	sqsh_rc_map_cleanup_t cleanup;
+};
+
+/**
+ * @internal
+ * @memberof CxHashMap
+ * @brief Initializes a hash map.
+ *
+ * @param hash_map The hash map to initialize.
+ * @param size The initial capacity of the hash map.
+ * @param element_size The size of each element.
+ * @return 0 on success, a negative value on error.
+ */
+CX_NO_UNUSED int cx_hash_map_init(
+		struct CxHashMap *hash_map, size_t size, size_t element_size);
+
+/**
+ * @internal
+ * @memberof CxHashMap
+ * @brief Inserts or retrieves a value in a hash map.
+ *
+ * @param hash_map The hash map to set the value in.
+ * @param key The key to set the value at.
+ * @param data The data to set.
+ * @return A pointer to the data in the hash map, or NULL on error.
+ */
+void *
+cx_hash_map_put(struct CxHashMap *hash_map, uint64_t key, void *data);
+
+/**
+ * @internal
+ * @memberof CxHashMap
+ * @brief Gets the capacity of a hash map.
+ *
+ * @param hash_map The hash map to get the size of.
+ * @return The size of the hash map.
+ */
+size_t cx_hash_map_size(const struct CxHashMap *hash_map);
+
+/**
+ * @internal
+ * @memberof CxHashMap
+ * @brief Gets the data at a specified key in a hash map.
+ *
+ * @param hash_map The hash map containing the data.
+ * @param key The key of the data.
+ * @return A pointer to the data, or NULL if not found.
+ */
+void *cx_hash_map_get(struct CxHashMap *hash_map, uint64_t key);
+
+/**
+ * @internal
+ * @memberof CxHashMap
+ * @brief Deletes an entry from a hash map.
+ *
+ * @param hash_map The hash map containing the data.
+ * @param key The key of the entry to delete.
+ * @return 0 on success, a negative value on error.
+ */
+int cx_hash_map_delete(struct CxHashMap *hash_map, uint64_t key);
+
+/**
+ * @internal
+ * @memberof CxHashMap
+ * @brief Cleans up a hash map.
+ *
+ * @param hash_map The hash map to cleanup.
+ * @return 0 on success, a negative value on error.
+ */
+int cx_hash_map_cleanup(struct CxHashMap *hash_map);
+
+/***************************************
+ * collection/rc_hash_map.c
+ */
 
 /**
  * @brief A reference-counted hash map.
@@ -392,10 +478,8 @@ struct CxRcHashMap {
 	/**
 	 * @privatesection
 	 */
-	struct CxRcHashSlot *slots;
+	struct CxHashMap map;
 	struct CxPreallocPool pool;
-	size_t capacity;
-	size_t count;
 	size_t element_size;
 	sqsh_rc_map_cleanup_t cleanup;
 };

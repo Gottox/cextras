@@ -10,6 +10,7 @@ tests = [
     'collection/collector.c',
     'collection/lru_test.c',
     'collection/rc_hash_map_test.c',
+    'collection/hash_map_test.c',
     'collection/rc_map_test.c',
     'collection/radix_tree.c',
     'collection/rc_radix_tree_test.c',
