@@ -210,11 +210,11 @@ main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	int radix = atoi(argv[4]);
+	size_t radix = (size_t)atoi(argv[4]);
 	int field_nbr = atoi(argv[3]);
 	char *table_name = argv[2];
 	FILE *file = fopen(argv[1], "r");
-	int codepoint_size = find_max(file, field_nbr);
+	size_t codepoint_size = find_max(file, field_nbr);
 
 	rv = fseek(file, 0, SEEK_SET);
 	if (rv < 0) {

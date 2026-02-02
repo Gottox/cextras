@@ -43,7 +43,7 @@
 
 struct TestCollectIter {
 	cx_index_t index;
-	char **array;
+	const char **array;
 	size_t size;
 	int rv;
 };
@@ -63,7 +63,7 @@ test_collect_next(void *iter, const char **value, size_t *size) {
 static void
 collector(void) {
 	int rv = 0;
-	char *values[] = {"a", "b", "c", "d", "e", "f", "g", "h", "i", "j"};
+	const char *values[] = {"a", "b", "c", "d", "e", "f", "g", "h", "i", "j"};
 	char **target = NULL;
 	struct TestCollectIter iter = {
 			.index = 0,
@@ -84,7 +84,7 @@ collector(void) {
 static void
 collector_fail(void) {
 	int rv = 0;
-	char *values[] = {"a", "b", "c", "d", "e", "f", "g", "h", "i", "j"};
+	const char *values[] = {"a", "b", "c", "d", "e", "f", "g", "h", "i", "j"};
 	char **target = NULL;
 	struct TestCollectIter iter = {
 			.index = 0,

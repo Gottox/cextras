@@ -76,7 +76,7 @@ set_and_get_element(void) {
 	const uint8_t *get_ptr = cx_rc_hash_map_retain(&map, key);
 	ASSERT_NOT_NULL(get_ptr);
 	ASSERT_NE(get_ptr, &data);
-	ASSERT_EQ(*get_ptr, data);
+	ASSERT_EQ(data, *get_ptr);
 
 	cx_rc_hash_map_release(&map, set_ptr);
 	cx_rc_hash_map_release(&map, get_ptr);
@@ -96,20 +96,20 @@ check_overflow(void) {
 	ASSERT_EQ(0, rv);
 
 	ptr = cx_rc_hash_map_put(&map, 1, &data);
-	ASSERT_EQ(*ptr, data);
+	ASSERT_EQ(data, *ptr);
 	ptr = cx_rc_hash_map_put(&map, 2, &data);
-	ASSERT_EQ(*ptr, data);
+	ASSERT_EQ(data, *ptr);
 	ptr = cx_rc_hash_map_put(&map, 3, &data);
-	ASSERT_EQ(*ptr, data);
+	ASSERT_EQ(data, *ptr);
 	ptr = cx_rc_hash_map_put(&map, 4, &data);
-	ASSERT_EQ(*ptr, data);
+	ASSERT_EQ(data, *ptr);
 	data = 42;
 	ptr = cx_rc_hash_map_put(&map, 5, &data);
-	ASSERT_EQ(*ptr, data);
+	ASSERT_EQ(data, *ptr);
 
 	const uint8_t *get_ptr = cx_rc_hash_map_retain(&map, 5);
 	ASSERT_NOT_NULL(get_ptr);
-	ASSERT_EQ(*get_ptr, 42);
+	ASSERT_EQ(42, *get_ptr);
 	cx_rc_hash_map_release(&map, get_ptr);
 
 	cx_rc_hash_map_release_key(&map, 1);
@@ -135,13 +135,13 @@ stress_test_many_elements(void) {
 		uint64_t data = (uint64_t)i * 100;
 		const uint64_t *ptr = cx_rc_hash_map_put(&map, (uint64_t)i, &data);
 		ASSERT_NOT_NULL(ptr);
-		ASSERT_EQ(*ptr, data);
+		ASSERT_EQ(data, *ptr);
 	}
 
 	for (int i = 0; i < count; i++) {
 		uint64_t *ptr = cx_rc_hash_map_retain(&map, (uint64_t)i);
 		ASSERT_NOT_NULL(ptr);
-		ASSERT_EQ(*ptr, (uint64_t)i * 100);
+		ASSERT_EQ((uint64_t)i * 100, *ptr);
 		cx_rc_hash_map_release(&map, ptr);
 	}
 
@@ -171,13 +171,13 @@ stress_test_resize_with_held_refs(void) {
 	}
 
 	for (int i = 0; i < count; i++) {
-		ASSERT_EQ(*held_refs[i], (uint64_t)i);
+		ASSERT_EQ((uint64_t)i, *held_refs[i]);
 	}
 
 	for (int i = 0; i < count; i++) {
 		uint64_t *ptr = cx_rc_hash_map_retain(&map, (uint64_t)i);
 		ASSERT_NOT_NULL(ptr);
-		ASSERT_EQ(*ptr, (uint64_t)i);
+		ASSERT_EQ((uint64_t)i, *ptr);
 		cx_rc_hash_map_release(&map, ptr);
 	}
 
@@ -201,12 +201,12 @@ test_duplicate_key(void) {
 
 	const uint8_t *ptr1 = cx_rc_hash_map_put(&map, 42, &data1);
 	ASSERT_NOT_NULL(ptr1);
-	ASSERT_EQ(*ptr1, 10);
+	ASSERT_EQ(10, *ptr1);
 
 	const uint8_t *ptr2 = cx_rc_hash_map_put(&map, 42, &data2);
 	ASSERT_NOT_NULL(ptr2);
-	ASSERT_EQ(ptr2, ptr1);
-	ASSERT_EQ(*ptr2, 10);
+	ASSERT_EQ(ptr1, ptr2);
+	ASSERT_EQ(10, *ptr2);
 
 	cx_rc_hash_map_release(&map, ptr1);
 	cx_rc_hash_map_release(&map, ptr2);
@@ -228,13 +228,13 @@ test_collision_handling(void) {
 		uint64_t data = (uint64_t)i * 7;
 		const uint64_t *ptr = cx_rc_hash_map_put(&map, (uint64_t)i, &data);
 		ASSERT_NOT_NULL(ptr);
-		ASSERT_EQ(*ptr, data);
+		ASSERT_EQ(data, *ptr);
 	}
 
 	for (int i = count - 1; i >= 0; i--) {
 		uint64_t *ptr = cx_rc_hash_map_retain(&map, (uint64_t)i);
 		ASSERT_NOT_NULL(ptr);
-		ASSERT_EQ(*ptr, (uint64_t)i * 7);
+		ASSERT_EQ((uint64_t)i * 7, *ptr);
 		cx_rc_hash_map_release(&map, ptr);
 	}
 
