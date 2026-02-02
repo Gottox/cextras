@@ -1,5 +1,6 @@
 configure:
   - -Dwerror=true
+  - -Dwarning_level=2
   - -Dtest=true
   - -Db_sanitize=address,undefined
 default:

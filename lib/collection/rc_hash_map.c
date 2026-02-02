@@ -128,6 +128,13 @@ cx_rc_hash_map_retain(struct CxRcHashMap *hash_map, uint64_t key) {
 	return NULL;
 }
 
+void
+cx_rc_hash_map_retain_value(struct CxRcHashMap *hash_map, const void *value) {
+	(void)hash_map;
+	struct CxRcEntry *entry = data_to_entry(value);
+	entry->ref_count++;
+}
+
 static void
 release_entry(struct CxRcHashMap *hash_map, struct CxRcEntry *entry) {
 	if (entry->ref_count == 0) {
@@ -170,6 +177,11 @@ lru_rc_hash_map_retain(void *backend, uint64_t index) {
 	return cx_rc_hash_map_retain(backend, index);
 }
 
+static void
+lru_rc_hash_map_retain_value(void *backend, void *value) {
+	cx_rc_hash_map_retain_value(backend, value);
+}
+
 static int
 lru_rc_hash_map_release(void *backend, uint64_t index) {
 	return cx_rc_hash_map_release_key(backend, index);
@@ -177,5 +189,6 @@ lru_rc_hash_map_release(void *backend, uint64_t index) {
 
 const struct CxLruBackendImpl cx_lru_rc_hash_map = {
 		.retain = lru_rc_hash_map_retain,
+		.retain_value = lru_rc_hash_map_retain_value,
 		.release = lru_rc_hash_map_release,
 };

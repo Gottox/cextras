@@ -95,7 +95,7 @@ hash_map_needs_resize(struct CxHashMap *hash_map) {
 }
 
 static struct CxHashSlot *
-key_to_slot(struct CxHashMap *hash_map, uint64_t key) {
+key_to_slot(const struct CxHashMap *hash_map, uint64_t key) {
 	if (hash_map->capacity == 0) {
 		return NULL;
 	}
@@ -297,7 +297,7 @@ cx_hash_map_size(const struct CxHashMap *hash_map) {
 }
 
 void *
-cx_hash_map_get(struct CxHashMap *hash_map, uint64_t key) {
+cx_hash_map_get(const struct CxHashMap *hash_map, uint64_t key) {
 	struct CxHashSlot *slot = key_to_slot(hash_map, key);
 	if (slot == NULL) {
 		return NULL;

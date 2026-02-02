@@ -444,7 +444,7 @@ size_t cx_hash_map_size(const struct CxHashMap *hash_map);
  * @param key The key of the data.
  * @return A pointer to the data, or NULL if not found.
  */
-void *cx_hash_map_get(struct CxHashMap *hash_map, uint64_t key);
+void *cx_hash_map_get(const struct CxHashMap *hash_map, uint64_t key);
 
 /**
  * @internal
@@ -532,6 +532,17 @@ size_t cx_rc_hash_map_size(const struct CxRcHashMap *hash_map);
  * @return A pointer to the retained data.
  */
 void *cx_rc_hash_map_retain(struct CxRcHashMap *hash_map, uint64_t key);
+
+/**
+ * @internal
+ * @memberof CxRcHashMap
+ * @brief Retains a value already retrieved from a reference-counted hash map.
+ *
+ * @param hash_map The hash map containing the data.
+ * @param value The value to retain.
+ */
+void cx_rc_hash_map_retain_value(
+		struct CxRcHashMap *hash_map, const void *value);
 
 /**
  * @internal
