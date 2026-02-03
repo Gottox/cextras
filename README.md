@@ -7,7 +7,7 @@ A set of generic functions that can be used in multiple projects.
 subproject/cextras.wrap:
 ```ini
 [wrap-git]
-url=https://github.com/Gottox/cextras.git
+url=https://codeberg.org/Gottox/cextras.git
 revision=main
 depth=1
 
