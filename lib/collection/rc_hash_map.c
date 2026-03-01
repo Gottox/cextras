@@ -34,6 +34,7 @@
 #include "../../include/cextras/collection.h"
 #include "../../include/cextras/memory.h"
 
+#include <stdatomic.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -43,7 +44,7 @@
  * Contains reference count, key, and user data.
  */
 struct CxRcEntry {
-	size_t ref_count;
+	atomic_size_t ref_count;
 	uint64_t key;
 	/* User data follows immediately after this struct */
 };
@@ -87,7 +88,7 @@ cx_rc_hash_map_put(struct CxRcHashMap *hash_map, uint64_t key, void *data) {
 			cx_hash_map_get(&hash_map->map, key);
 	if (existing != NULL) {
 		hash_map->cleanup(data);
-		(*existing)->ref_count++;
+		atomic_fetch_add(&(*existing)->ref_count, 1);
 		return entry_data(*existing);
 	}
 
@@ -97,7 +98,7 @@ cx_rc_hash_map_put(struct CxRcHashMap *hash_map, uint64_t key, void *data) {
 		return NULL;
 	}
 
-	entry->ref_count = 0;
+	atomic_init(&entry->ref_count, 1);
 	entry->key = key;
 	memcpy(entry_data(entry), data, hash_map->element_size);
 
@@ -121,7 +122,7 @@ cx_rc_hash_map_retain(struct CxRcHashMap *hash_map, uint64_t key) {
 	struct CxRcEntry **entry_ptr = cx_hash_map_get(&hash_map->map, key);
 
 	if (entry_ptr != NULL) {
-		(*entry_ptr)->ref_count++;
+		atomic_fetch_add(&(*entry_ptr)->ref_count, 1);
 		return entry_data(*entry_ptr);
 	}
 
@@ -132,17 +133,15 @@ void
 cx_rc_hash_map_retain_value(struct CxRcHashMap *hash_map, const void *value) {
 	(void)hash_map;
 	struct CxRcEntry *entry = data_to_entry(value);
-	entry->ref_count++;
+	atomic_fetch_add(&entry->ref_count, 1);
 }
 
 static void
 release_entry(struct CxRcHashMap *hash_map, struct CxRcEntry *entry) {
-	if (entry->ref_count == 0) {
+	if (atomic_fetch_sub(&entry->ref_count, 1) == 1) {
 		hash_map->cleanup(entry_data(entry));
 		cx_hash_map_delete(&hash_map->map, entry->key);
 		cx_prealloc_pool_recycle(&hash_map->pool, entry);
-	} else {
-		entry->ref_count--;
 	}
 }
 
