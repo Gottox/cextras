@@ -115,10 +115,6 @@ key_to_slot(const struct CxHashMap *hash_map, uint64_t key) {
 			return slot;
 		}
 
-		if (slot->state == SLOT_OCCUPIED && slot->psl < psl) {
-			return NULL;
-		}
-
 		psl++;
 		index = (index + 1) % hash_map->capacity;
 	}
