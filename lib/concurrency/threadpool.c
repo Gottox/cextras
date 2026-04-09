@@ -32,6 +32,13 @@
 #include <stdbool.h>
 #include <unistd.h>
 
+enum INIT_STATE {
+	INIT_STATE_UNINITALIZED,
+	INIT_STATE_MUTEX_INITIALIZED,
+	INIT_STATE_COND_INITIALIZED,
+	INIT_STATE_THREAD_STARTED,
+};
+
 static int
 cpu_count(void) {
 	long numCPUs = sysconf(_SC_NPROCESSORS_ONLN);
@@ -137,20 +144,29 @@ worker_run(void *data) {
 	return 0;
 }
 
-static int
-worker_cleanup(struct CxWorker *worker) {
-	pthread_mutex_lock(&worker->queue_mutex);
-	pthread_cond_signal(&worker->queue_cond);
-	pthread_mutex_unlock(&worker->queue_mutex);
+static void
+worker_cleanup(struct CxWorker *worker, enum INIT_STATE init_state) {
+	if (init_state >= INIT_STATE_THREAD_STARTED) {
+		pthread_mutex_lock(&worker->queue_mutex);
+		pthread_cond_signal(&worker->queue_cond);
+		pthread_mutex_unlock(&worker->queue_mutex);
 
-	pthread_join(worker->thread, NULL);
-	pthread_mutex_destroy(&worker->queue_mutex);
-	pthread_cond_destroy(&worker->queue_cond);
-	return 0;
+		pthread_join(worker->thread, NULL);
+	}
+
+	if (init_state >= INIT_STATE_COND_INITIALIZED) {
+		pthread_cond_destroy(&worker->queue_cond);
+	}
+
+	if (init_state >= INIT_STATE_MUTEX_INITIALIZED) {
+		pthread_mutex_destroy(&worker->queue_mutex);
+	}
 }
 
 static int
 worker_init(struct CxWorker *worker, struct CxThreadpool *threadpool) {
+	enum INIT_STATE init_state = INIT_STATE_UNINITALIZED;
+
 	int rv = 0;
 	worker->pool = threadpool;
 	worker->head = NULL;
@@ -162,17 +178,20 @@ worker_init(struct CxWorker *worker, struct CxThreadpool *threadpool) {
 		rv = -1;
 		goto out;
 	}
+	init_state = INIT_STATE_MUTEX_INITIALIZED;
+
 	rv = pthread_cond_init(&worker->queue_cond, NULL);
 	if (rv != 0) {
 		rv = -1;
 		goto out;
 	}
+	init_state = INIT_STATE_COND_INITIALIZED;
 
 out:
 	if (rv < 0) {
-		worker_cleanup(worker);
+		worker_cleanup(worker, init_state);
 	}
-	return 0;
+	return rv;
 }
 
 static int
@@ -213,7 +232,8 @@ cx_threadpool_init(struct CxThreadpool *threadpool, size_t worker_count) {
 		}
 	}
 
-	for (size_t i = 0; i < worker_count; i++) {
+	size_t i;
+	for (i = 0; i < worker_count; i++) {
 		struct CxWorker *worker = &threadpool->workers[i];
 		rv = worker_start(worker);
 		if (rv != 0) {
@@ -226,7 +246,7 @@ out:
 	if (rv < 0) {
 		cx_threadpool_cleanup(threadpool);
 	}
-	return 0;
+	return rv;
 }
 
 int
@@ -239,6 +259,7 @@ cx_threadpool_schedule(
 	bool worker_locked = false;
 	struct CxTask *new_task = task_new(threadpool, function, arg);
 	if (new_task == NULL) {
+		rv = -1;
 		goto out;
 	}
 
@@ -281,7 +302,7 @@ out:
 	if (rv < 0) {
 		task_free(threadpool, new_task);
 	}
-	return 0;
+	return rv;
 }
 
 int
@@ -299,7 +320,7 @@ cx_threadpool_cleanup(struct CxThreadpool *threadpool) {
 	atomic_store(&threadpool->running, false);
 	for (size_t i = 0; i < threadpool->worker_count; i++) {
 		struct CxWorker *worker = &threadpool->workers[i];
-		worker_cleanup(worker);
+		worker_cleanup(worker, INIT_STATE_THREAD_STARTED);
 	}
 	free(threadpool->workers);
 	cx_prealloc_pool_cleanup(&threadpool->task_pool);
