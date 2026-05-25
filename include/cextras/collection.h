@@ -409,8 +409,8 @@ struct CxHashMap {
  * @param element_size The size of each element.
  * @return 0 on success, a negative value on error.
  */
-CX_NO_UNUSED int cx_hash_map_init(
-		struct CxHashMap *hash_map, size_t size, size_t element_size);
+CX_NO_UNUSED int
+cx_hash_map_init(struct CxHashMap *hash_map, size_t size, size_t element_size);
 
 /**
  * @internal
@@ -422,8 +422,7 @@ CX_NO_UNUSED int cx_hash_map_init(
  * @param data The data to set.
  * @return A pointer to the data in the hash map, or NULL on error.
  */
-void *
-cx_hash_map_put(struct CxHashMap *hash_map, uint64_t key, void *data);
+void *cx_hash_map_put(struct CxHashMap *hash_map, uint64_t key, void *data);
 
 /**
  * @internal
@@ -541,8 +540,8 @@ void *cx_rc_hash_map_retain(struct CxRcHashMap *hash_map, uint64_t key);
  * @param hash_map The hash map containing the data.
  * @param value The value to retain.
  */
-void cx_rc_hash_map_retain_value(
-		struct CxRcHashMap *hash_map, const void *value);
+void
+cx_rc_hash_map_retain_value(struct CxRcHashMap *hash_map, const void *value);
 
 /**
  * @internal
@@ -778,6 +777,29 @@ int cx_rc_radix_tree_release(struct CxRcRadixTree *tree, uint64_t key);
 int cx_rc_radix_tree_cleanup(struct CxRcRadixTree *tree);
 
 extern const struct CxLruBackendImpl cx_lru_rc_radix_tree;
+
+/***************************************
+ * collection/vec.c
+ */
+
+struct CxVec {
+	size_t size;
+	size_t capacity;
+	size_t element_size;
+	uint8_t *data;
+};
+
+int cx_vec_init(struct CxVec *vec, size_t element_size, size_t capacity);
+
+void *cx_vec_push(struct CxVec *vec, void *value);
+
+void *cx_vec_pull(struct CxVec *vec, void *value);
+
+void *cx_vec_get(struct CxVec *vec, size_t index);
+
+void *cx_vec_peek(struct CxVec *vec);
+
+void cx_vec_cleanup(struct CxVec *tree);
 
 #ifdef __cplusplus
 }

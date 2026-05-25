@@ -7,4 +7,5 @@ collection_src = files(
     'rc_hash_map.c',
     'rc_map.c',
     'rc_radix_tree.c',
+    'vec.c',
 )

@@ -14,6 +14,7 @@ tests = [
     'collection/rc_map_test.c',
     'collection/radix_tree.c',
     'collection/rc_radix_tree_test.c',
+    'collection/vec_test.c',
     'memory/rc.c',
     'memory/utils.c',
     'memory/prealloc_pool.c',
