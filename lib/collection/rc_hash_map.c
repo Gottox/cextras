@@ -84,8 +84,7 @@ cx_rc_hash_map_init(
 void *
 cx_rc_hash_map_put(struct CxRcHashMap *hash_map, uint64_t key, void *data) {
 	/* Check if key already exists */
-	struct CxRcEntry **existing =
-			cx_hash_map_get(&hash_map->map, key);
+	struct CxRcEntry **existing = cx_hash_map_get(&hash_map->map, key);
 	if (existing != NULL) {
 		hash_map->cleanup(data);
 		atomic_fetch_add(&(*existing)->ref_count, 1);

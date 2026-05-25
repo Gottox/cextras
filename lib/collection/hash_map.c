@@ -59,7 +59,8 @@ static size_t
 slot_size(size_t element_size) {
 	size_t base = sizeof(struct CxHashSlot);
 	// Align element_size to void* boundary for safe access
-	size_t aligned = (element_size + sizeof(void *) - 1) & ~(sizeof(void *) - 1);
+	size_t aligned =
+			(element_size + sizeof(void *) - 1) & ~(sizeof(void *) - 1);
 	return base + aligned;
 }
 
@@ -139,7 +140,8 @@ robin_hood_insert_slot(
 		memcpy(tmp, target, full_size);
 		struct CxHashSlot *tmp_slot = (struct CxHashSlot *)tmp;
 
-		if (tmp_slot->state == SLOT_EMPTY || tmp_slot->state == SLOT_TOMBSTONE) {
+		if (tmp_slot->state == SLOT_EMPTY ||
+			tmp_slot->state == SLOT_TOMBSTONE) {
 			cur_slot->psl = psl;
 			memcpy(target, cur, full_size);
 			return;

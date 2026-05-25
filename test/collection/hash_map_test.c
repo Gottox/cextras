@@ -307,7 +307,8 @@ test_high_collision_robin_hood(void) {
 	int rv;
 	struct CxHashMap map;
 
-	/* Very small initial capacity to force many collisions and robin hood swaps */
+	/* Very small initial capacity to force many collisions and robin hood swaps
+	 */
 	rv = cx_hash_map_init(&map, 4, sizeof(uint64_t));
 	ASSERT_EQ(0, rv);
 

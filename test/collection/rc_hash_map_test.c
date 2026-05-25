@@ -326,12 +326,13 @@ test_put_duplicate_increments_refcount(void) {
 	ASSERT_NOT_NULL(ptr1);
 	ASSERT_EQ((uint64_t)100, *ptr1);
 
-	/* Duplicate put - cleanup is called on new data, existing entry's refcount incremented */
+	/* Duplicate put - cleanup is called on new data, existing entry's refcount
+	 * incremented */
 	uint64_t data2 = 200;
 	uint64_t *ptr2 = cx_rc_hash_map_put(&map, 1, &data2);
 	ASSERT_NOT_NULL(ptr2);
 	ASSERT_EQ(ptr1, ptr2);
-	ASSERT_EQ((uint64_t)100, *ptr2);  /* Original value preserved */
+	ASSERT_EQ((uint64_t)100, *ptr2); /* Original value preserved */
 	/* Cleanup was called on data2 */
 	ASSERT_EQ(initial_deinit_calls + 1, rc_hash_map_deinit_calls);
 
