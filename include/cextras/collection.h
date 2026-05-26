@@ -795,9 +795,11 @@ void *cx_vec_push(struct CxVec *vec, void *value);
 
 void *cx_vec_pull(struct CxVec *vec, void *value);
 
-void *cx_vec_get(struct CxVec *vec, size_t index);
+void *cx_vec_get(const struct CxVec *vec, size_t index);
 
-void *cx_vec_peek(struct CxVec *vec);
+void *cx_vec_peek(const struct CxVec *vec);
+
+size_t cx_vec_size(const struct CxVec *vec);
 
 void cx_vec_cleanup(struct CxVec *tree);
 

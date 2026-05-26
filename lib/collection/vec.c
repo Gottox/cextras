@@ -35,6 +35,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define TO_PTR(v, i) (((uint8_t *)(v)->data) + (i) * (v)->element_size) 
+
 int
 cx_vec_init(struct CxVec *vec, size_t element_size, size_t capacity) {
 	int rv = 0;
@@ -57,11 +59,6 @@ out:
 	return rv;
 }
 
-static void *
-to_ptr(struct CxVec *vec, size_t index) {
-	return (uint8_t *)vec->data + index * vec->element_size;
-}
-
 void *
 cx_vec_push(struct CxVec *vec, void *value) {
 	/* No overflow check needed. We have an upper bound from capacity. */
@@ -82,7 +79,7 @@ cx_vec_push(struct CxVec *vec, void *value) {
 		vec->data = new_data;
 		vec->capacity = new_capacity;
 	}
-	void *ptr = to_ptr(vec, vec->size);
+	void *ptr = TO_PTR(vec, vec->size);
 	memcpy(ptr, value, vec->element_size);
 	vec->size = new_size;
 	return ptr;
@@ -100,19 +97,24 @@ cx_vec_pull(struct CxVec *vec, void *value) {
 }
 
 void *
-cx_vec_get(struct CxVec *vec, size_t index) {
+cx_vec_get(const struct CxVec *vec, size_t index) {
 	if (index >= vec->size) {
 		return NULL;
 	}
-	return to_ptr(vec, index);
+	return TO_PTR(vec, index);
 }
 
 void *
-cx_vec_peek(struct CxVec *vec) {
+cx_vec_peek(const struct CxVec *vec) {
 	if (vec->size == 0) {
 		return NULL;
 	}
-	return to_ptr(vec, vec->size - 1);
+	return TO_PTR(vec, vec->size - 1);
+}
+
+size_t
+cx_vec_size(const struct CxVec *vec) {
+	return vec->size;
 }
 
 void
