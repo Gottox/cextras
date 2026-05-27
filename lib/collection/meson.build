@@ -8,4 +8,5 @@ collection_src = files(
     'rc_map.c',
     'rc_radix_tree.c',
     'vec.c',
+    'pin_vec.c',
 )

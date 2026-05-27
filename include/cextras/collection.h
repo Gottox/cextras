@@ -801,7 +801,30 @@ void *cx_vec_peek(const struct CxVec *vec);
 
 size_t cx_vec_size(const struct CxVec *vec);
 
-void cx_vec_cleanup(struct CxVec *tree);
+void cx_vec_cleanup(struct CxVec *vec);
+
+/***************************************
+ * collection/pin_vec.c
+ */
+
+struct CxPinVec {
+	struct CxVec vec;
+	struct CxPreallocPool pool;
+};
+
+int cx_pin_vec_init(struct CxPinVec *vec, size_t element_size, size_t capacity);
+
+void *cx_pin_vec_push(struct CxPinVec *vec, void *value);
+
+int cx_pin_vec_pull(struct CxPinVec *vec);
+
+void *cx_pin_vec_get(const struct CxPinVec *vec, size_t index);
+
+void *cx_pin_vec_peek(const struct CxPinVec *vec);
+
+size_t cx_pin_vec_size(const struct CxPinVec *vec);
+
+void cx_pin_vec_cleanup(struct CxPinVec *vec);
 
 #ifdef __cplusplus
 }
