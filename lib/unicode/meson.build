@@ -1,5 +1,5 @@
-codegen_byte_size = executable('codegen_byte_size', 'codegen/byte_size.c')
-codegen_char_width = executable('codegen_char_width', 'codegen/char_width.c')
+codegen_byte_size = executable('codegen_byte_size', 'codegen/byte_size.c', native: true)
+codegen_char_width = executable('codegen_char_width', 'codegen/char_width.c', native: true)
 
 # curl -o codegen/EastAsianWidth.txt https://www.unicode.org/Public/UCD/latest/ucd/EastAsianWidth.txt
 double_width_table = files('codegen/EastAsianWidth.txt')
