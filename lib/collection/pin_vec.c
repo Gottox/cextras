@@ -57,7 +57,11 @@ cx_pin_vec_push(struct CxPinVec *vec, void *value) {
 		cx_prealloc_pool_recycle(&vec->pool, element);
 		return NULL;
 	}
-	memcpy(element, value, vec->pool.element_size);
+	if (value != NULL) {
+		memcpy(element, value, vec->pool.element_size);
+	} else {
+		memset(element, 0, vec->pool.element_size);
+	}
 	return element;
 }
 
