@@ -35,7 +35,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define TO_PTR(v, i) (((uint8_t *)(v)->data) + (i) * (v)->element_size)
+#define TO_PTR(v, i) (&(v)->data[(i) * (v)->element_size])
 
 #define CX_VEC_DEFAULT_CAPACITY 16
 
@@ -75,7 +75,7 @@ cx_vec_push(struct CxVec *vec, void *value) {
 		} else if (CX_MUL_OVERFLOW(vec->capacity, 2, &new_capacity)) {
 			return NULL;
 		}
-		if (cx_vec_reserve(vec, new_capacity) != 0) {
+		if (cx_vec_reserve(vec, new_capacity) < 0) {
 			return NULL;
 		}
 	}

@@ -47,7 +47,7 @@ struct TestlibTest {
 	} while (0)
 #define ASSERT_TRUE(a) ASSERT(a)
 #define ASSERT_FALSE(a) ASSERT(!(a))
-#define ASSERT_POINTER(x) ((void)sizeof((const volatile void *){ (x) }))
+#define ASSERT_POINTER(x) ((void)sizeof((const volatile void *){(x)}))
 #define ASSERT_NULL(a) \
 	do { \
 		ASSERT_POINTER(a); \
