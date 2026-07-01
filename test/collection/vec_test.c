@@ -42,12 +42,12 @@ static void
 init_vec(void) {
 	struct CxVec vec = {0};
 
-	int rv = cx_vec_init(&vec, sizeof(int), 0);
+	int rv = cx_vec_init(&vec, sizeof(int));
 	assert(rv == 0);
 	assert(vec.size == 0);
-	assert(vec.capacity == 16);
+	assert(vec.capacity == 0);
 	assert(vec.element_size == sizeof(int));
-	assert(vec.data != NULL);
+	assert(vec.data == NULL);
 
 	cx_vec_cleanup(&vec);
 	assert(vec.data == NULL);
@@ -57,13 +57,24 @@ init_vec(void) {
 }
 
 static void
-init_vec_with_capacity(void) {
+reserve_capacity(void) {
 	struct CxVec vec = {0};
 
-	int rv = cx_vec_init(&vec, sizeof(uint64_t), 4);
+	int rv = cx_vec_init(&vec, sizeof(uint64_t));
+	assert(rv == 0);
+	assert(vec.capacity == 0);
+	assert(vec.data == NULL);
+
+	rv = cx_vec_reserve(&vec, 4);
 	assert(rv == 0);
 	assert(vec.capacity == 4);
+	assert(vec.data != NULL);
 	assert(vec.element_size == sizeof(uint64_t));
+
+	/* Reserving a smaller capacity is a no-op. */
+	rv = cx_vec_reserve(&vec, 2);
+	assert(rv == 0);
+	assert(vec.capacity == 4);
 
 	cx_vec_cleanup(&vec);
 }
@@ -72,7 +83,9 @@ static void
 push_and_get(void) {
 	struct CxVec vec = {0};
 
-	int rv = cx_vec_init(&vec, sizeof(int), 4);
+	int rv = cx_vec_init(&vec, sizeof(int));
+	assert(rv == 0);
+	rv = cx_vec_reserve(&vec, 4);
 	assert(rv == 0);
 
 	for (int i = 0; i < 4; i++) {
@@ -97,7 +110,7 @@ static void
 get_out_of_bounds(void) {
 	struct CxVec vec = {0};
 
-	int rv = cx_vec_init(&vec, sizeof(int), 4);
+	int rv = cx_vec_init(&vec, sizeof(int));
 	assert(rv == 0);
 
 	assert(cx_vec_get(&vec, 0) == NULL);
@@ -117,16 +130,21 @@ static void
 push_grows_capacity(void) {
 	struct CxVec vec = {0};
 
-	int rv = cx_vec_init(&vec, sizeof(int), 2);
+	int rv = cx_vec_init(&vec, sizeof(int));
+	assert(rv == 0);
+	rv = cx_vec_reserve(&vec, 2);
 	assert(rv == 0);
 	assert(vec.capacity == 2);
 
 	int a = 1, b = 2, c = 3;
-	assert(cx_vec_push(&vec, &a) != NULL);
-	assert(cx_vec_push(&vec, &b) != NULL);
+	void *p = cx_vec_push(&vec, &a);
+	assert(p != NULL);
+	p = cx_vec_push(&vec, &b);
+	assert(p != NULL);
 	assert(vec.capacity == 2);
 
-	assert(cx_vec_push(&vec, &c) != NULL);
+	p = cx_vec_push(&vec, &c);
+	assert(p != NULL);
 	assert(vec.size == 3);
 	assert(vec.capacity >= 3);
 
@@ -141,7 +159,7 @@ static void
 peek_empty(void) {
 	struct CxVec vec = {0};
 
-	int rv = cx_vec_init(&vec, sizeof(int), 4);
+	int rv = cx_vec_init(&vec, sizeof(int));
 	assert(rv == 0);
 
 	assert(cx_vec_peek(&vec) == NULL);
@@ -153,15 +171,18 @@ static void
 peek_returns_last(void) {
 	struct CxVec vec = {0};
 
-	int rv = cx_vec_init(&vec, sizeof(int), 4);
+	int rv = cx_vec_init(&vec, sizeof(int));
 	assert(rv == 0);
 
 	int a = 11, b = 22, c = 33;
-	assert(cx_vec_push(&vec, &a) != NULL);
+	void *p = cx_vec_push(&vec, &a);
+	assert(p != NULL);
 	assert(*(int *)cx_vec_peek(&vec) == 11);
-	assert(cx_vec_push(&vec, &b) != NULL);
+	p = cx_vec_push(&vec, &b);
+	assert(p != NULL);
 	assert(*(int *)cx_vec_peek(&vec) == 22);
-	assert(cx_vec_push(&vec, &c) != NULL);
+	p = cx_vec_push(&vec, &c);
+	assert(p != NULL);
 	assert(*(int *)cx_vec_peek(&vec) == 33);
 
 	cx_vec_cleanup(&vec);
@@ -171,25 +192,31 @@ static void
 pull_returns_last_and_shrinks(void) {
 	struct CxVec vec = {0};
 
-	int rv = cx_vec_init(&vec, sizeof(int), 4);
+	int rv = cx_vec_init(&vec, sizeof(int));
 	assert(rv == 0);
 
 	int a = 1, b = 2, c = 3;
-	assert(cx_vec_push(&vec, &a) != NULL);
-	assert(cx_vec_push(&vec, &b) != NULL);
-	assert(cx_vec_push(&vec, &c) != NULL);
+	void *p = cx_vec_push(&vec, &a);
+	assert(p != NULL);
+	p = cx_vec_push(&vec, &b);
+	assert(p != NULL);
+	p = cx_vec_push(&vec, &c);
+	assert(p != NULL);
 	assert(vec.size == 3);
 
 	int out = 0;
-	assert(cx_vec_pull(&vec, &out) == &out);
+	void *pulled = cx_vec_pull(&vec, &out);
+	assert(pulled == &out);
 	assert(out == 3);
 	assert(vec.size == 2);
 
-	assert(cx_vec_pull(&vec, &out) == &out);
+	pulled = cx_vec_pull(&vec, &out);
+	assert(pulled == &out);
 	assert(out == 2);
 	assert(vec.size == 1);
 
-	assert(cx_vec_pull(&vec, &out) == &out);
+	pulled = cx_vec_pull(&vec, &out);
+	assert(pulled == &out);
 	assert(out == 1);
 	assert(vec.size == 0);
 
@@ -200,11 +227,12 @@ static void
 pull_empty(void) {
 	struct CxVec vec = {0};
 
-	int rv = cx_vec_init(&vec, sizeof(int), 4);
+	int rv = cx_vec_init(&vec, sizeof(int));
 	assert(rv == 0);
 
 	int out = 99;
-	assert(cx_vec_pull(&vec, &out) == NULL);
+	void *pulled = cx_vec_pull(&vec, &out);
+	assert(pulled == NULL);
 	assert(out == 99);
 
 	cx_vec_cleanup(&vec);
@@ -212,7 +240,7 @@ pull_empty(void) {
 
 DECLARE_TESTS
 TEST(init_vec)
-TEST(init_vec_with_capacity)
+TEST(reserve_capacity)
 TEST(push_and_get)
 TEST(get_out_of_bounds)
 TEST(push_grows_capacity)

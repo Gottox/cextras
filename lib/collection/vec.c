@@ -35,50 +35,52 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define TO_PTR(v, i) (((uint8_t *)(v)->data) + (i) * (v)->element_size) 
+#define TO_PTR(v, i) (((uint8_t *)(v)->data) + (i) * (v)->element_size)
+
+#define CX_VEC_DEFAULT_CAPACITY 16
 
 int
-cx_vec_init(struct CxVec *vec, size_t element_size, size_t capacity) {
-	int rv = 0;
-	if (capacity == 0) {
-		capacity = 16;
-	}
-	vec->data = calloc(capacity, element_size);
-	if (vec->data == NULL) {
-		rv = -1;
-		goto out;
-	}
-	vec->capacity = capacity;
+cx_vec_init(struct CxVec *vec, size_t element_size) {
+	vec->data = NULL;
+	vec->capacity = 0;
 	vec->element_size = element_size;
 	vec->size = 0;
+	return 0;
+}
 
-out:
-	if (rv < 0) {
-		cx_vec_cleanup(vec);
+int
+cx_vec_reserve(struct CxVec *vec, size_t capacity) {
+	if (capacity <= vec->capacity) {
+		return 0;
 	}
-	return rv;
+	size_t alloc_size;
+	if (CX_MUL_OVERFLOW(capacity, vec->element_size, &alloc_size)) {
+		return -1;
+	}
+	void *new_data = realloc(vec->data, alloc_size);
+	if (new_data == NULL) {
+		return -1;
+	}
+	vec->data = new_data;
+	vec->capacity = capacity;
+	return 0;
 }
 
 void *
 cx_vec_push(struct CxVec *vec, void *value) {
+	if (vec->size == vec->capacity) {
+		size_t new_capacity;
+		if (vec->capacity == 0) {
+			new_capacity = CX_VEC_DEFAULT_CAPACITY;
+		} else if (CX_MUL_OVERFLOW(vec->capacity, 2, &new_capacity)) {
+			return NULL;
+		}
+		if (cx_vec_reserve(vec, new_capacity) != 0) {
+			return NULL;
+		}
+	}
 	/* No overflow check needed. We have an upper bound from capacity. */
 	const size_t new_size = vec->size + 1;
-	if (new_size > vec->capacity) {
-		size_t new_capacity;
-		if (CX_MUL_OVERFLOW(vec->capacity, 2, &new_capacity)) {
-			return NULL;
-		}
-		size_t alloc_size;
-		if (CX_MUL_OVERFLOW(new_capacity, vec->element_size, &alloc_size)) {
-			return NULL;
-		}
-		void *new_data = realloc(vec->data, alloc_size);
-		if (new_data == NULL) {
-			return NULL;
-		}
-		vec->data = new_data;
-		vec->capacity = new_capacity;
-	}
 	void *ptr = TO_PTR(vec, vec->size);
 	memcpy(ptr, value, vec->element_size);
 	vec->size = new_size;

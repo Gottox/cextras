@@ -36,9 +36,9 @@
 #include <string.h>
 
 int
-cx_pin_vec_init(struct CxPinVec *vec, size_t element_size, size_t capacity) {
+cx_pin_vec_init(struct CxPinVec *vec, size_t element_size) {
 	int rv = 0;
-	rv = cx_vec_init(&vec->vec, sizeof(void *), capacity);
+	rv = cx_vec_init(&vec->vec, sizeof(void *));
 	if (rv < 0) {
 		goto out;
 	}
@@ -47,6 +47,11 @@ cx_pin_vec_init(struct CxPinVec *vec, size_t element_size, size_t capacity) {
 
 out:
 	return rv;
+}
+
+int
+cx_pin_vec_reserve(struct CxPinVec *vec, size_t capacity) {
+	return cx_vec_reserve(&vec->vec, capacity);
 }
 
 void *
