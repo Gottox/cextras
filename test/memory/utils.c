@@ -32,7 +32,6 @@
  * @file         utils.c
  */
 
-#include <assert.h>
 #include <cextras/memory.h>
 #include <string.h>
 #include <testlib.h>
@@ -41,9 +40,9 @@ static void
 test_memdup(void) {
 	const char *str = "Hello World";
 	char *dup = cx_memdup(str, strlen(str));
-	assert(dup != NULL);
-	assert(dup[strlen(str)] == '\0');
-	assert(strcmp(str, dup) == 0);
+	ASSERT_NOT_NULL(dup);
+	ASSERT_EQ('\0', dup[strlen(str)]);
+	ASSERT_STREQ(str, dup);
 	free(dup);
 }
 

@@ -32,7 +32,6 @@
  * @file         rc_map.c
  */
 
-#include <assert.h>
 #include <cextras/collection.h>
 #include <stdatomic.h>
 #include <stdint.h>
@@ -54,10 +53,10 @@ init_rc_map(void) {
 	struct CxRcMap map;
 
 	rv = cx_rc_map_init(&map, 128, sizeof(uint8_t), rc_map_deinit);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	rv = cx_rc_map_cleanup(&map);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 }
 
 static void
@@ -67,23 +66,23 @@ set_and_get_element(void) {
 	uint8_t data = 23;
 
 	rv = cx_rc_map_init(&map, 128, sizeof(uint8_t), rc_map_deinit);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	size_t index = 42;
 	const uint8_t *set_ptr = cx_rc_map_set(&map, index, &data);
-	assert(rv == 0);
-	assert(set_ptr != &data);
+	ASSERT_EQ(0, rv);
+	ASSERT_NE(&data, set_ptr);
 
 	const uint8_t *get_ptr = cx_rc_map_retain(&map, index);
-	assert(rv == 0);
-	assert(get_ptr != &data);
-	assert(get_ptr == get_ptr);
+	ASSERT_EQ(0, rv);
+	ASSERT_NE(&data, get_ptr);
+	ASSERT_EQ(get_ptr, get_ptr);
 	cx_rc_map_release(&map, get_ptr);
 
 	cx_rc_map_release(&map, set_ptr);
 
 	rv = cx_rc_map_cleanup(&map);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 }
 
 DECLARE_TESTS

@@ -32,7 +32,6 @@
  * @file         rc_map.c
  */
 
-#include <assert.h>
 #include <cextras/collection.h>
 #include <testlib.h>
 #include <time.h>
@@ -56,15 +55,15 @@ set_and_get_element(void) {
 	uint64_t key = 4242424;
 	uintptr_t value = 42;
 	const uintptr_t *set_ptr = cx_radix_tree_put(&map, key, &value);
-	assert(set_ptr != NULL);
-	assert(*set_ptr == 42);
+	ASSERT_NOT_NULL(set_ptr);
+	ASSERT_EQ(42, *set_ptr);
 
 	const uintptr_t *get_ptr = cx_radix_tree_get(&map, key);
-	assert(get_ptr == set_ptr);
-	assert(*get_ptr == 42);
+	ASSERT_EQ(set_ptr, get_ptr);
+	ASSERT_EQ(42, *get_ptr);
 
 	rv = cx_radix_tree_delete(&map, key);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	cx_radix_tree_cleanup(&map);
 }
@@ -79,15 +78,15 @@ set_size_max(void) {
 	uint64_t key = UINT64_MAX;
 	uintptr_t value = 42;
 	const uintptr_t *set_ptr = cx_radix_tree_put(&map, key, &value);
-	assert(set_ptr != NULL);
-	assert(*set_ptr == 42);
+	ASSERT_NOT_NULL(set_ptr);
+	ASSERT_EQ(42, *set_ptr);
 
 	const uintptr_t *get_ptr = cx_radix_tree_get(&map, key);
-	assert(get_ptr == set_ptr);
-	assert(*get_ptr == 42);
+	ASSERT_EQ(set_ptr, get_ptr);
+	ASSERT_EQ(42, *get_ptr);
 
 	rv = cx_radix_tree_delete(&map, key);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	cx_radix_tree_cleanup(&map);
 }
@@ -101,21 +100,21 @@ test_cleanup(void) {
 
 	uint64_t key = 6762;
 	const uint64_t *set_ptr = cx_radix_tree_put(&tree, key, &data);
-	assert(set_ptr != &data);
+	ASSERT_NE(&data, set_ptr);
 
 	key = 12715;
 	const uint64_t *set_ptr2 = cx_radix_tree_put(&tree, key, &data);
-	assert(set_ptr2 != &data);
+	ASSERT_NE(&data, set_ptr2);
 
 	cx_radix_tree_delete(&tree, 6762);
 
 	uint64_t *get_ptr = cx_radix_tree_get(&tree, 12715);
-	assert(get_ptr != NULL);
+	ASSERT_NOT_NULL(get_ptr);
 
 	cx_radix_tree_delete(&tree, 12715);
 
 	get_ptr = cx_radix_tree_get(&tree, 12715);
-	assert(get_ptr == NULL);
+	ASSERT_NULL(get_ptr);
 
 	cx_radix_tree_cleanup(&tree);
 }

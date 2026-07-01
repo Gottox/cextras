@@ -82,6 +82,18 @@ struct TestlibTest {
 			FAIL("%s == %s; %s == %s", #a, #b, a, b); \
 		} \
 	} while (0)
+#define ASSERT_MEMEQ(a, b, s) \
+	do { \
+		if (memcmp((a), (b), (s))) { \
+			FAIL("%s == %s (%zu bytes)", #a, #b, (size_t)(s)); \
+		} \
+	} while (0)
+#define ASSERT_MEMNEQ(a, b, s) \
+	do { \
+		if (!memcmp((a), (b), (s))) { \
+			FAIL("%s != %s (%zu bytes)", #a, #b, (size_t)(s)); \
+		} \
+	} while (0)
 #define ASSERT_OP(a, op, b) \
 	do { \
 		if (!((a)op(b))) { \

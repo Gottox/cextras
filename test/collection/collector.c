@@ -32,7 +32,6 @@
  * @file         rc_map.c
  */
 
-#include <assert.h>
 #include <cextras/collection.h>
 #include <cextras/types.h>
 #include <stdlib.h>
@@ -72,12 +71,12 @@ collector(void) {
 	};
 
 	rv = cx_collect(&target, test_collect_next, &iter);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	for (size_t i = 0; i < LENGTH(values); i++) {
-		assert(strcmp(values[i], target[i]) == 0);
+		ASSERT_STREQ(values[i], target[i]);
 	}
-	assert(target[LENGTH(values)] == NULL);
+	ASSERT_NULL(target[LENGTH(values)]);
 	free(target);
 }
 
@@ -94,8 +93,8 @@ collector_fail(void) {
 	};
 
 	rv = cx_collect(&target, test_collect_next, &iter);
-	assert(rv == -1);
-	assert(target == NULL);
+	ASSERT_EQ(-1, rv);
+	ASSERT_NULL(target);
 }
 
 DECLARE_TESTS

@@ -32,7 +32,6 @@
  * @file         buffer.c
  */
 
-#include <assert.h>
 #include <cextras/collection.h>
 #include <string.h>
 #include <testlib.h>
@@ -43,9 +42,9 @@ init_buffer(void) {
 	struct CxBuffer buffer = {0};
 
 	rv = cx_buffer_init(&buffer);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 	rv = cx_buffer_cleanup(&buffer);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 }
 
 static void
@@ -54,20 +53,20 @@ append_to_buffer(void) {
 	struct CxBuffer buffer = {0};
 
 	rv = cx_buffer_init(&buffer);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	const uint8_t hello_world[] = "Hello World";
 	rv = cx_buffer_append(&buffer, hello_world, sizeof(hello_world));
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 	rv = cx_buffer_append(&buffer, hello_world, sizeof(hello_world));
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	const uint8_t *data = cx_buffer_data(&buffer);
 	rv = memcmp(data, "Hello World\0Hello World\0", sizeof(hello_world) * 2);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	rv = cx_buffer_cleanup(&buffer);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 }
 
 DECLARE_TESTS

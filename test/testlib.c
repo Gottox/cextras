@@ -4,7 +4,6 @@
  * @created     : Tuesday Jul 25, 2023 13:56:58 CEST
  */
 
-#include <assert.h>
 #include <testlib.h>
 
 static void
@@ -12,7 +11,7 @@ test1(void) {}
 
 static void
 test_fail(void) {
-	assert(0);
+	ASSERT(0);
 }
 
 DECLARE_TESTS

@@ -1,7 +1,6 @@
 
 #define _GNU_SOURCE
 
-#include <assert.h>
 #include <cextras/memory.h>
 #include <pthread.h>
 #include <testlib.h>
@@ -18,16 +17,16 @@ test_simple(void) {
 	cx_prealloc_pool_init(&pool, sizeof(struct MyStruct));
 
 	struct MyStruct *element = cx_prealloc_pool_get(&pool);
-	assert(element != NULL);
+	ASSERT_NOT_NULL(element);
 
 	cx_prealloc_pool_recycle(&pool, element);
 
 	struct MyStruct *element2 = cx_prealloc_pool_get(&pool);
-	assert(element2 == element);
+	ASSERT_EQ(element, element2);
 
 	cx_prealloc_pool_recycle(&pool, element2);
 
-	assert(pool.reuse_pool != NULL);
+	ASSERT_NOT_NULL(pool.reuse_pool);
 	cx_prealloc_pool_cleanup(&pool);
 }
 

@@ -1,7 +1,6 @@
 
 #define _GNU_SOURCE
 
-#include <assert.h>
 #include <cextras/concurrency.h>
 #include <pthread.h>
 #include <stdatomic.h>
@@ -34,10 +33,10 @@ test_init_cleanup(void) {
 	int rv = 0;
 
 	rv = cx_threadpool_init(&pool, 2);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	rv = cx_threadpool_cleanup(&pool);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 }
 
 static void
@@ -47,7 +46,7 @@ thread_func_inc(void *arg) {
 
 	usleep(1000);
 	atomic_fetch_add(counter, 1);
-	assert(rv == PTHREAD_BARRIER_SERIAL_THREAD || rv == 0);
+	ASSERT(rv == PTHREAD_BARRIER_SERIAL_THREAD || rv == 0);
 }
 
 static void
@@ -57,19 +56,19 @@ test_add_task(void) {
 	atomic_uint counter = 0;
 
 	rv = cx_threadpool_init(&pool, 1);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	rv = cx_threadpool_schedule(&pool, thread_func_inc, &counter);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	while (atomic_load(&counter) != 1) {
 		usleep(1000);
 	}
 
 	rv = cx_threadpool_wait(&pool);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 	rv = cx_threadpool_cleanup(&pool);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 }
 
 static void
@@ -79,23 +78,23 @@ test_add_multiple_tasks_ackermann(void) {
 	unsigned int ackermann_results[100] = {0};
 
 	rv = cx_threadpool_init(&pool, 0);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	for (size_t i = 0; i < LENGTH(ackermann_results); i++) {
 		ackermann_results[i] = i;
 		rv = cx_threadpool_schedule(
 				&pool, thread_func_ackermann, &ackermann_results[i]);
-		assert(rv == 0);
+		ASSERT_EQ(0, rv);
 	}
 
 	rv = cx_threadpool_wait(&pool);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 	rv = cx_threadpool_cleanup(&pool);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	unsigned int expected = ackermann(2, 6);
 	for (size_t i = 0; i < LENGTH(ackermann_results); i++) {
-		assert(ackermann_results[i] == expected);
+		ASSERT_EQ(expected, ackermann_results[i]);
 	}
 }
 
@@ -106,20 +105,21 @@ test_add_multiple_tasks(void) {
 	atomic_int counter = 0;
 
 	rv = cx_threadpool_init(&pool, 0);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	for (size_t i = 0; i < 10000; i++) {
 		rv = cx_threadpool_schedule(&pool, thread_func_inc, &counter);
-		assert(rv == 0);
+		ASSERT_EQ(0, rv);
 	}
 
 	rv = cx_threadpool_wait(&pool);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	rv = cx_threadpool_cleanup(&pool);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
-	assert(atomic_load(&counter) == 10000);
+	int total = atomic_load(&counter);
+	ASSERT_EQ(10000, total);
 }
 
 DECLARE_TESTS

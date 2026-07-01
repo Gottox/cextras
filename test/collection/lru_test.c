@@ -32,7 +32,6 @@
  * @file         rc_map.c
  */
 
-#include <assert.h>
 #include <cextras/collection.h>
 #include <stdatomic.h>
 #include <testlib.h>
@@ -53,16 +52,16 @@ lru_map(void) {
 	struct CxRcMap map = {0};
 
 	rv = cx_rc_map_init(&map, 128, sizeof(uint8_t), deinit);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	rv = cx_lru_init(&lru, 10, &cx_lru_rc_map, &map);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	rv = cx_lru_cleanup(&lru);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	rv = cx_rc_map_cleanup(&map);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 }
 
 static void
@@ -72,16 +71,16 @@ lru_hash_map(void) {
 	struct CxRcHashMap map = {0};
 
 	rv = cx_rc_hash_map_init(&map, 128, sizeof(uint8_t), deinit);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	rv = cx_lru_init(&lru, 10, &cx_lru_rc_hash_map, &map);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	rv = cx_lru_cleanup(&lru);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	rv = cx_rc_hash_map_cleanup(&map);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 }
 
 static void
@@ -93,22 +92,22 @@ lru_hash_map_insert_and_retain(void) {
 	const uint8_t *ptr;
 
 	rv = cx_rc_hash_map_init(&map, 128, sizeof(uint8_t), deinit);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	rv = cx_lru_init(&lru, 10, &cx_lru_rc_hash_map, &map);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	ptr = cx_rc_hash_map_put(&map, 42, &data);
 	rv = cx_lru_touch(&lru, 42);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	cx_rc_hash_map_release(&map, ptr);
 
 	rv = cx_lru_cleanup(&lru);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	rv = cx_rc_hash_map_cleanup(&map);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 }
 
 static void
@@ -120,30 +119,30 @@ lru_hash_map_insert_and_retain_twice(void) {
 	const uint8_t *ptr;
 
 	rv = cx_rc_hash_map_init(&map, 128, sizeof(uint8_t), deinit);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	rv = cx_lru_init(&lru, 10, &cx_lru_rc_hash_map, &map);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	ptr = cx_rc_hash_map_put(&map, 42, &data);
 	rv = cx_lru_touch(&lru, 42);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 	cx_rc_hash_map_release(&map, ptr);
 
 	ptr = cx_rc_hash_map_put(&map, 36, &data);
 	rv = cx_lru_touch(&lru, 36);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	rv = cx_lru_touch(&lru, 42);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	cx_rc_hash_map_release(&map, ptr);
 
 	rv = cx_lru_cleanup(&lru);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	rv = cx_rc_hash_map_cleanup(&map);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 }
 
 static void
@@ -155,59 +154,59 @@ lru_hash_map_insert_and_retain_overflow(void) {
 	const uint8_t *ptr;
 
 	rv = cx_rc_hash_map_init(&map, 10, sizeof(uint8_t), deinit);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	rv = cx_lru_init(&lru, 10, &cx_lru_rc_hash_map, &map);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	ptr = cx_rc_hash_map_put(&map, 0, &data);
 	rv = cx_lru_touch(&lru, 0);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 	cx_rc_hash_map_release(&map, ptr);
 
 	ptr = cx_rc_hash_map_put(&map, 1, &data);
 	rv = cx_lru_touch(&lru, 1);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 	cx_rc_hash_map_release(&map, ptr);
 
 	ptr = cx_rc_hash_map_put(&map, 2, &data);
 	rv = cx_lru_touch(&lru, 2);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 	cx_rc_hash_map_release(&map, ptr);
 
 	rv = cx_lru_touch(&lru, 0);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 	rv = cx_lru_touch(&lru, 1);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	rv = cx_lru_touch(&lru, 0);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 	rv = cx_lru_touch(&lru, 1);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	rv = cx_lru_touch(&lru, 0);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 	rv = cx_lru_touch(&lru, 1);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	rv = cx_lru_touch(&lru, 0);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 	rv = cx_lru_touch(&lru, 1);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	rv = cx_lru_touch(&lru, 0);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 	rv = cx_lru_touch(&lru, 1);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	ptr = cx_rc_hash_map_retain(&map, 2);
-	assert(ptr == NULL);
+	ASSERT_NULL(ptr);
 
 	rv = cx_lru_cleanup(&lru);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	rv = cx_rc_hash_map_cleanup(&map);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 }
 
 static void
@@ -219,59 +218,59 @@ lru_radix_tree_insert_and_retain_overflow(void) {
 	const uint8_t *ptr;
 
 	rv = cx_rc_radix_tree_init(&map, sizeof(uint64_t), deinit);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	rv = cx_lru_init(&lru, 10, &cx_lru_rc_radix_tree, &map);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	ptr = cx_rc_radix_tree_put(&map, 0, &data);
 	rv = cx_lru_touch(&lru, 0);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 	cx_rc_radix_tree_release(&map, 0);
 
 	ptr = cx_rc_radix_tree_put(&map, 1, &data);
 	rv = cx_lru_touch(&lru, 1);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 	cx_rc_radix_tree_release(&map, 1);
 
 	ptr = cx_rc_radix_tree_put(&map, 2, &data);
 	rv = cx_lru_touch(&lru, 2);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 	cx_rc_radix_tree_release(&map, 2);
 
 	rv = cx_lru_touch(&lru, 0);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 	rv = cx_lru_touch(&lru, 1);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	rv = cx_lru_touch(&lru, 0);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 	rv = cx_lru_touch(&lru, 1);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	rv = cx_lru_touch(&lru, 0);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 	rv = cx_lru_touch(&lru, 1);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	rv = cx_lru_touch(&lru, 0);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 	rv = cx_lru_touch(&lru, 1);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	rv = cx_lru_touch(&lru, 0);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 	rv = cx_lru_touch(&lru, 1);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	ptr = cx_rc_radix_tree_retain(&map, 2);
-	assert(ptr == NULL);
+	ASSERT_NULL(ptr);
 
 	rv = cx_lru_cleanup(&lru);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	rv = cx_rc_radix_tree_cleanup(&map);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 }
 
 DECLARE_TESTS

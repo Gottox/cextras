@@ -5,7 +5,6 @@
  */
 
 #include "../../include/cextras/endian.h"
-#include <assert.h>
 #include <stdint.h>
 #include <string.h>
 #include <sys/wait.h>
@@ -20,13 +19,13 @@ test_le16(void) {
 
 	u.i = CX_CPU_2_LE16(u.i);
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-	assert(memcmp(u.c, "\x01\x02", 2) == 0);
+	ASSERT_MEMEQ(u.c, "\x01\x02", 2);
 #else
-	assert(memcmp(u.c, "\x02\x01", 2) == 0);
+	ASSERT_MEMEQ(u.c, "\x02\x01", 2);
 #endif
 
 	u.i = CX_LE_2_CPU16(u.i);
-	assert(memcmp(u.c, "\x01\x02", 2) == 0);
+	ASSERT_MEMEQ(u.c, "\x01\x02", 2);
 }
 
 static void
@@ -38,13 +37,13 @@ test_be16(void) {
 
 	u.i = CX_CPU_2_BE16(u.i);
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-	assert(memcmp(u.c, "\x01\x02", 2) == 0);
+	ASSERT_MEMEQ(u.c, "\x01\x02", 2);
 #else
-	assert(memcmp(u.c, "\x02\x01", 2) == 0);
+	ASSERT_MEMEQ(u.c, "\x02\x01", 2);
 #endif
 
 	u.i = CX_BE_2_CPU16(u.i);
-	assert(memcmp(u.c, "\x01\x02", 2) == 0);
+	ASSERT_MEMEQ(u.c, "\x01\x02", 2);
 }
 
 static void
@@ -56,13 +55,13 @@ test_le32(void) {
 
 	u.i = CX_CPU_2_LE32(u.i);
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-	assert(memcmp(u.c, "\x01\x02\x03\x04", 4) == 0);
+	ASSERT_MEMEQ(u.c, "\x01\x02\x03\x04", 4);
 #else
-	assert(memcmp(u.c, "\x04\x03\x02\x01", 4) == 0);
+	ASSERT_MEMEQ(u.c, "\x04\x03\x02\x01", 4);
 #endif
 
 	u.i = CX_LE_2_CPU32(u.i);
-	assert(memcmp(u.c, "\x01\x02\x03\x04", 4) == 0);
+	ASSERT_MEMEQ(u.c, "\x01\x02\x03\x04", 4);
 }
 
 static void
@@ -74,13 +73,13 @@ test_be32(void) {
 
 	u.i = CX_CPU_2_BE32(u.i);
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-	assert(memcmp(u.c, "\x01\x02\x03\x04", 4) == 0);
+	ASSERT_MEMEQ(u.c, "\x01\x02\x03\x04", 4);
 #else
-	assert(memcmp(u.c, "\x04\x03\x02\x01", 4) == 0);
+	ASSERT_MEMEQ(u.c, "\x04\x03\x02\x01", 4);
 #endif
 
 	u.i = CX_BE_2_CPU32(u.i);
-	assert(memcmp(u.c, "\x01\x02\x03\x04", 4) == 0);
+	ASSERT_MEMEQ(u.c, "\x01\x02\x03\x04", 4);
 }
 
 static void
@@ -92,13 +91,13 @@ test_le64(void) {
 
 	u.i = CX_CPU_2_LE64(u.i);
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-	assert(memcmp(u.c, "\x01\x02\x03\x04\x05\x06\x07\x08", 8) == 0);
+	ASSERT_MEMEQ(u.c, "\x01\x02\x03\x04\x05\x06\x07\x08", 8);
 #else
-	assert(memcmp(u.c, "\x08\x07\x06\x05\x04\x03\x02\x01", 8) == 0);
+	ASSERT_MEMEQ(u.c, "\x08\x07\x06\x05\x04\x03\x02\x01", 8);
 #endif
 
 	u.i = CX_LE_2_CPU64(u.i);
-	assert(memcmp(u.c, "\x01\x02\x03\x04\x05\x06\x07\x08", 8) == 0);
+	ASSERT_MEMEQ(u.c, "\x01\x02\x03\x04\x05\x06\x07\x08", 8);
 }
 
 static void
@@ -110,13 +109,13 @@ test_be64(void) {
 
 	u.i = CX_CPU_2_BE64(u.i);
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-	assert(memcmp(u.c, "\x01\x02\x03\x04\x05\x06\x07\x08", 8) == 0);
+	ASSERT_MEMEQ(u.c, "\x01\x02\x03\x04\x05\x06\x07\x08", 8);
 #else
-	assert(memcmp(u.c, "\x08\x07\x06\x05\x04\x03\x02\x01", 8) == 0);
+	ASSERT_MEMEQ(u.c, "\x08\x07\x06\x05\x04\x03\x02\x01", 8);
 #endif
 
 	u.i = CX_BE_2_CPU64(u.i);
-	assert(memcmp(u.c, "\x01\x02\x03\x04\x05\x06\x07\x08", 8) == 0);
+	ASSERT_MEMEQ(u.c, "\x01\x02\x03\x04\x05\x06\x07\x08", 8);
 }
 
 DECLARE_TESTS

@@ -32,7 +32,6 @@
  * @file         rc_map.c
  */
 
-#include <assert.h>
 #include <cextras/collection.h>
 #include <stdatomic.h>
 #include <stdint.h>
@@ -53,10 +52,10 @@ init_rc_radix_tree(void) {
 	struct CxRcRadixTree tree;
 
 	rv = cx_rc_radix_tree_init(&tree, sizeof(uint64_t), rc_radix_tree_deinit);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	rv = cx_rc_radix_tree_cleanup(&tree);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 }
 
 static void
@@ -66,23 +65,23 @@ set_and_get_element(void) {
 	uint64_t data = 23;
 
 	rv = cx_rc_radix_tree_init(&tree, sizeof(uint64_t), rc_radix_tree_deinit);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	uint64_t key = 0;
 	const uint64_t *set_ptr = cx_rc_radix_tree_put(&tree, key, &data);
-	assert(rv == 0);
-	assert(set_ptr != &data);
+	ASSERT_EQ(0, rv);
+	ASSERT_NE(&data, set_ptr);
 
 	const uint64_t *get_ptr = cx_rc_radix_tree_retain(&tree, key);
-	assert(rv == 0);
-	assert(get_ptr != &data);
-	assert(*get_ptr == data);
+	ASSERT_EQ(0, rv);
+	ASSERT_NE(&data, get_ptr);
+	ASSERT_EQ(data, *get_ptr);
 
 	cx_rc_radix_tree_release(&tree, key);
 	cx_rc_radix_tree_release(&tree, key);
 
 	rv = cx_rc_radix_tree_cleanup(&tree);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 }
 
 static void
@@ -92,23 +91,23 @@ test_cleanup(void) {
 	uint64_t data = 23;
 
 	rv = cx_rc_radix_tree_init(&tree, sizeof(uint64_t), rc_radix_tree_deinit);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	uint64_t key = 6762;
 	const uint64_t *set_ptr = cx_rc_radix_tree_put(&tree, key, &data);
-	assert(rv == 0);
-	assert(set_ptr != &data);
+	ASSERT_EQ(0, rv);
+	ASSERT_NE(&data, set_ptr);
 
 	key = 12715;
 	const uint64_t *set_ptr2 = cx_rc_radix_tree_put(&tree, key, &data);
-	assert(rv == 0);
-	assert(set_ptr2 != &data);
+	ASSERT_EQ(0, rv);
+	ASSERT_NE(&data, set_ptr2);
 
 	cx_rc_radix_tree_release(&tree, 6762);
 	cx_rc_radix_tree_release(&tree, 12715);
 
 	rv = cx_rc_radix_tree_cleanup(&tree);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 }
 
 DECLARE_TESTS

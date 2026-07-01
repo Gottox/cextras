@@ -1,6 +1,5 @@
 #define _GNU_SOURCE
 
-#include <assert.h>
 #include <cextras/concurrency.h>
 #include <pthread.h>
 #include <stdatomic.h>
@@ -13,12 +12,12 @@ static void
 test_simple_future(void) {
 	int marker = 42;
 	cx_future_t future = cx_future_init(NULL);
-	assert(future != NULL);
+	ASSERT_NOT_NULL(future);
 
 	cx_future_resolve(future, &marker);
 
 	int *result = cx_future_wait(future);
-	assert(result == &marker);
+	ASSERT_EQ(&marker, result);
 
 	cx_future_destroy(future);
 }
@@ -28,10 +27,10 @@ resolver(void *arg) {
 	cx_future_t future = arg;
 
 	int *input = cx_future_get_in_value(future);
-	assert(input != NULL);
+	ASSERT_NOT_NULL(input);
 
 	int *output = malloc(sizeof(*output));
-	assert(output != NULL);
+	ASSERT_NOT_NULL(output);
 	*output = *input;
 	cx_future_resolve(future, output);
 }
@@ -42,7 +41,7 @@ waiter(void *arg) {
 
 	int *result = cx_future_wait(future);
 
-	assert(*result == 42);
+	ASSERT_EQ(42, *result);
 	free(result);
 	cx_future_destroy(future);
 }
@@ -53,7 +52,7 @@ test_first_wait_then_resolve(void) {
 	int marker = 42;
 	struct CxThreadpool pool = {0};
 	rv = cx_threadpool_init(&pool, 1);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	cx_future_t future = cx_future_init(&marker);
 
@@ -72,7 +71,7 @@ test_first_resolve_then_wait(void) {
 	int marker = 42;
 	struct CxThreadpool pool = {0};
 	rv = cx_threadpool_init(&pool, 1);
-	assert(rv == 0);
+	ASSERT_EQ(0, rv);
 
 	cx_future_t future = cx_future_init(&marker);
 
