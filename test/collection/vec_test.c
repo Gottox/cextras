@@ -41,8 +41,7 @@ static void
 init_vec(void) {
 	struct CxVec vec = {0};
 
-	int rv = cx_vec_init(&vec, sizeof(int));
-	ASSERT_EQ(0, rv);
+	cx_vec_init(&vec, sizeof(int));
 	ASSERT_EQ(0, vec.size);
 	ASSERT_EQ(0, vec.capacity);
 	ASSERT_EQ(sizeof(int), vec.element_size);
@@ -59,12 +58,11 @@ static void
 reserve_capacity(void) {
 	struct CxVec vec = {0};
 
-	int rv = cx_vec_init(&vec, sizeof(uint64_t));
-	ASSERT_EQ(0, rv);
+	cx_vec_init(&vec, sizeof(uint64_t));
 	ASSERT_EQ(0, vec.capacity);
 	ASSERT_NULL(vec.data);
 
-	rv = cx_vec_reserve(&vec, 4);
+	int rv = cx_vec_reserve(&vec, 4);
 	ASSERT_EQ(0, rv);
 	ASSERT_EQ(4, vec.capacity);
 	ASSERT_NOT_NULL(vec.data);
@@ -82,9 +80,8 @@ static void
 push_and_get(void) {
 	struct CxVec vec = {0};
 
-	int rv = cx_vec_init(&vec, sizeof(int));
-	ASSERT_EQ(0, rv);
-	rv = cx_vec_reserve(&vec, 4);
+	cx_vec_init(&vec, sizeof(int));
+	int rv = cx_vec_reserve(&vec, 4);
 	ASSERT_EQ(0, rv);
 
 	for (int i = 0; i < 4; i++) {
@@ -109,8 +106,7 @@ static void
 get_out_of_bounds(void) {
 	struct CxVec vec = {0};
 
-	int rv = cx_vec_init(&vec, sizeof(int));
-	ASSERT_EQ(0, rv);
+	cx_vec_init(&vec, sizeof(int));
 
 	ASSERT_NULL(cx_vec_get(&vec, 0));
 
@@ -129,9 +125,8 @@ static void
 push_grows_capacity(void) {
 	struct CxVec vec = {0};
 
-	int rv = cx_vec_init(&vec, sizeof(int));
-	ASSERT_EQ(0, rv);
-	rv = cx_vec_reserve(&vec, 2);
+	cx_vec_init(&vec, sizeof(int));
+	int rv = cx_vec_reserve(&vec, 2);
 	ASSERT_EQ(0, rv);
 	ASSERT_EQ(2, vec.capacity);
 
@@ -158,8 +153,7 @@ static void
 peek_empty(void) {
 	struct CxVec vec = {0};
 
-	int rv = cx_vec_init(&vec, sizeof(int));
-	ASSERT_EQ(0, rv);
+	cx_vec_init(&vec, sizeof(int));
 
 	ASSERT_NULL(cx_vec_peek(&vec));
 
@@ -170,8 +164,7 @@ static void
 peek_returns_last(void) {
 	struct CxVec vec = {0};
 
-	int rv = cx_vec_init(&vec, sizeof(int));
-	ASSERT_EQ(0, rv);
+	cx_vec_init(&vec, sizeof(int));
 
 	int a = 11, b = 22, c = 33;
 	void *p = cx_vec_push(&vec, &a);
@@ -191,8 +184,7 @@ static void
 pull_returns_last_and_shrinks(void) {
 	struct CxVec vec = {0};
 
-	int rv = cx_vec_init(&vec, sizeof(int));
-	ASSERT_EQ(0, rv);
+	cx_vec_init(&vec, sizeof(int));
 
 	int a = 1, b = 2, c = 3;
 	void *p = cx_vec_push(&vec, &a);
@@ -226,8 +218,7 @@ static void
 pull_empty(void) {
 	struct CxVec vec = {0};
 
-	int rv = cx_vec_init(&vec, sizeof(int));
-	ASSERT_EQ(0, rv);
+	cx_vec_init(&vec, sizeof(int));
 
 	int out = 99;
 	void *pulled = cx_vec_pull(&vec, &out);

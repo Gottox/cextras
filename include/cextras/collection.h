@@ -789,7 +789,7 @@ struct CxVec {
 	uint8_t *data;
 };
 
-int cx_vec_init(struct CxVec *vec, size_t element_size);
+void cx_vec_init(struct CxVec *vec, size_t element_size);
 
 int cx_vec_reserve(struct CxVec *vec, size_t capacity);
 
@@ -814,7 +814,7 @@ struct CxPinVec {
 	struct CxPreallocPool pool;
 };
 
-int cx_pin_vec_init(struct CxPinVec *vec, size_t element_size);
+void cx_pin_vec_init(struct CxPinVec *vec, size_t element_size);
 
 int cx_pin_vec_reserve(struct CxPinVec *vec, size_t capacity);
 

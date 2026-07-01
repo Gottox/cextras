@@ -46,8 +46,7 @@ static void
 init_basic(void) {
 	struct CxPinVec vec = {0};
 
-	int rv = cx_pin_vec_init(&vec, sizeof(struct Payload));
-	ASSERT_EQ(0, rv);
+	cx_pin_vec_init(&vec, sizeof(struct Payload));
 	ASSERT_EQ((size_t)0, cx_pin_vec_size(&vec));
 	ASSERT_NULL(cx_pin_vec_peek(&vec));
 
@@ -58,9 +57,8 @@ static void
 elements_stay_pinned_across_vec_reallocation(void) {
 	struct CxPinVec vec = {0};
 
-	int rv = cx_pin_vec_init(&vec, sizeof(struct Payload));
-	ASSERT_EQ(0, rv);
-	rv = cx_pin_vec_reserve(&vec, 2);
+	cx_pin_vec_init(&vec, sizeof(struct Payload));
+	int rv = cx_pin_vec_reserve(&vec, 2);
 	ASSERT_EQ(0, rv);
 	ASSERT_EQ((size_t)2, vec.vec.capacity);
 
@@ -96,8 +94,7 @@ static void
 mutation_via_saved_pointer_survives_reallocation(void) {
 	struct CxPinVec vec = {0};
 
-	int rv = cx_pin_vec_init(&vec, sizeof(struct Payload));
-	ASSERT_EQ(0, rv);
+	cx_pin_vec_init(&vec, sizeof(struct Payload));
 
 	struct Payload first_in = {.marker = 0x1111, .index = 0};
 	struct Payload *first = cx_pin_vec_push(&vec, &first_in);
@@ -124,8 +121,7 @@ static void
 all_saved_pointers_remain_distinct_and_valid(void) {
 	struct CxPinVec vec = {0};
 
-	int rv = cx_pin_vec_init(&vec, sizeof(struct Payload));
-	ASSERT_EQ(0, rv);
+	cx_pin_vec_init(&vec, sizeof(struct Payload));
 
 	enum { N = 100 };
 	struct Payload *saved[N];
@@ -154,8 +150,7 @@ static void
 peek_returns_last_after_realloc(void) {
 	struct CxPinVec vec = {0};
 
-	int rv = cx_pin_vec_init(&vec, sizeof(struct Payload));
-	ASSERT_EQ(0, rv);
+	cx_pin_vec_init(&vec, sizeof(struct Payload));
 
 	for (size_t i = 0; i < 32; i++) {
 		struct Payload in = {.marker = i + 1, .index = i};
@@ -174,8 +169,7 @@ static void
 pull_decrements_and_addresses_remain_valid(void) {
 	struct CxPinVec vec = {0};
 
-	int rv = cx_pin_vec_init(&vec, sizeof(struct Payload));
-	ASSERT_EQ(0, rv);
+	cx_pin_vec_init(&vec, sizeof(struct Payload));
 
 	enum { N = 20 };
 	struct Payload *saved[N];
@@ -205,8 +199,7 @@ static void
 pull_empty_returns_error(void) {
 	struct CxPinVec vec = {0};
 
-	int rv = cx_pin_vec_init(&vec, sizeof(struct Payload));
-	ASSERT_EQ(0, rv);
+	cx_pin_vec_init(&vec, sizeof(struct Payload));
 
 	ASSERT_EQ(-1, cx_pin_vec_pull(&vec));
 
@@ -217,8 +210,7 @@ static void
 get_out_of_bounds_returns_null(void) {
 	struct CxPinVec vec = {0};
 
-	int rv = cx_pin_vec_init(&vec, sizeof(struct Payload));
-	ASSERT_EQ(0, rv);
+	cx_pin_vec_init(&vec, sizeof(struct Payload));
 
 	ASSERT_NULL(cx_pin_vec_get(&vec, 0));
 	ASSERT_NULL(cx_pin_vec_get(&vec, 100));

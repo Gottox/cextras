@@ -35,18 +35,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-int
+void
 cx_pin_vec_init(struct CxPinVec *vec, size_t element_size) {
-	int rv = 0;
-	rv = cx_vec_init(&vec->vec, sizeof(void *));
-	if (rv < 0) {
-		goto out;
-	}
-
+	cx_vec_init(&vec->vec, sizeof(void *));
 	cx_prealloc_pool_init(&vec->pool, element_size);
-
-out:
-	return rv;
 }
 
 int

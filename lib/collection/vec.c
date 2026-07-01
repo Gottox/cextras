@@ -39,13 +39,10 @@
 
 #define CX_VEC_DEFAULT_CAPACITY 16
 
-int
+void
 cx_vec_init(struct CxVec *vec, size_t element_size) {
-	vec->data = NULL;
-	vec->capacity = 0;
+	memset(vec, 0, sizeof(*vec));
 	vec->element_size = element_size;
-	vec->size = 0;
-	return 0;
 }
 
 int
