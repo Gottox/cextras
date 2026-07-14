@@ -34,7 +34,7 @@ union ReuseList {
 	char element;
 };
 
-char *
+static char *
 reuse_node(struct CxPreallocPool *pool) {
 	union ReuseList *element = pool->reuse_pool;
 	union ReuseList *next = element->next;
@@ -44,7 +44,7 @@ reuse_node(struct CxPreallocPool *pool) {
 	return &element->element;
 }
 
-int
+static int
 add_chunk(struct CxPreallocPool *pool) {
 	pool->pool_count++;
 	pool->chunk_size *= 2;

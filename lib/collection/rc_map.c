@@ -104,7 +104,7 @@ get_element(struct CxRcMap *array, size_t index) {
 	return (void *)&array->data[offset];
 }
 
-int
+static int
 retain_rc(struct CxRcMap *array, size_t index) {
 	int ref_count = ++array->ref_count[index];
 
@@ -114,7 +114,7 @@ retain_rc(struct CxRcMap *array, size_t index) {
 	return ref_count;
 }
 
-int
+static int
 release_rc(struct CxRcMap *array, size_t index) {
 	int ref_count = --array->ref_count[index];
 

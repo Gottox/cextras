@@ -50,7 +50,7 @@ cx_rc_radix_tree_init(
 	return 0;
 }
 
-rc_t *
+static rc_t *
 radix_tree_retain(struct CxRcRadixTree *tree, uint64_t key) {
 	rc_t *obj = cx_radix_tree_get(&tree->values, key);
 
