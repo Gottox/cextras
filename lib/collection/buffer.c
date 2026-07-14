@@ -33,6 +33,7 @@
 
 #include "../../include/cextras/collection.h"
 #include "../../include/cextras/error.h"
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -170,6 +171,13 @@ cx_buffer_move(struct CxBuffer *buffer, struct CxBuffer *source) {
 void
 cx_buffer_drain(struct CxBuffer *buffer) {
 	buffer->size = 0;
+}
+
+void
+cx_buffer_shift(struct CxBuffer *buffer, size_t count) {
+	assert(count <= buffer->size);
+	memmove(buffer->data, &buffer->data[count], buffer->size - count);
+	buffer->size -= count;
 }
 
 const uint8_t *

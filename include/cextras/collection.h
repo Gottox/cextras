@@ -196,6 +196,19 @@ void cx_buffer_drain(struct CxBuffer *buffer);
 /**
  * @internal
  * @memberof CxBuffer
+ * @brief drops the first count bytes, shifting the remainder to the front.
+ *
+ * count must not be greater than the size; passing a larger value is undefined
+ * behavior. The capacity is not changed so that the buffer can be reused.
+ *
+ * @param[in,out] buffer The CxBuffer to shift.
+ * @param[in] count The number of bytes to drop from the front.
+ */
+void cx_buffer_shift(struct CxBuffer *buffer, size_t count);
+
+/**
+ * @internal
+ * @memberof CxBuffer
  * @brief cx_buffer_data returns the data of the CxBuffer.
  * @param[in] buffer The CxBuffer to get the data from.
  * @return a pointer to the data of the CxBuffer.

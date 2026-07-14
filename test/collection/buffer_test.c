@@ -69,7 +69,34 @@ append_to_buffer(void) {
 	ASSERT_EQ(0, rv);
 }
 
+static void
+shift_buffer(void) {
+	int rv;
+	struct CxBuffer buffer = {0};
+
+	rv = cx_buffer_init(&buffer);
+	ASSERT_EQ(0, rv);
+
+	const uint8_t hello_world[] = "Hello World";
+	rv = cx_buffer_append(&buffer, hello_world, sizeof(hello_world) - 1);
+	ASSERT_EQ(0, rv);
+
+	// Drop "Hello ", leaving "World"
+	cx_buffer_shift(&buffer, 6);
+	ASSERT_EQ(5, cx_buffer_size(&buffer));
+	rv = memcmp(cx_buffer_data(&buffer), "World", 5);
+	ASSERT_EQ(0, rv);
+
+	// Shifting the whole remainder empties the buffer
+	cx_buffer_shift(&buffer, 5);
+	ASSERT_EQ(0, cx_buffer_size(&buffer));
+
+	rv = cx_buffer_cleanup(&buffer);
+	ASSERT_EQ(0, rv);
+}
+
 DECLARE_TESTS
 TEST(init_buffer)
 TEST(append_to_buffer)
+TEST(shift_buffer)
 END_TESTS
