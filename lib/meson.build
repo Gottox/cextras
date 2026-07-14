@@ -1,12 +1,24 @@
-subdir('collection')
+src = []
 
-subdir('concurrency')
+if get_option('collection')
+    subdir('collection')
+    src += collection_src
+endif
 
-subdir('memory')
+if get_option('concurrency')
+    subdir('concurrency')
+    src += concurrency_src
+endif
 
-subdir('unicode')
+if get_option('memory')
+    subdir('memory')
+    src += memory_src
+endif
 
-src = [concurrency_src, collection_src, memory_src, unicode_src]
+if get_option('unicode')
+    subdir('unicode')
+    src += unicode_src
+endif
 
 cextras = static_library(
     'cextras',

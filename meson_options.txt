@@ -1,8 +1,26 @@
 option(
-    'threads',
-    type: 'feature',
-    value: 'auto',
-    description: 'Build with thread support.',
+    'memory',
+    type: 'boolean',
+    value: true,
+    description: 'Build the memory module.',
+)
+option(
+    'collection',
+    type: 'boolean',
+    value: true,
+    description: 'Build the collection module (requires memory).',
+)
+option(
+    'concurrency',
+    type: 'boolean',
+    value: true,
+    description: 'Build the concurrency module (requires memory).',
+)
+option(
+    'unicode',
+    type: 'boolean',
+    value: true,
+    description: 'Build the unicode module.',
 )
 option(
     'test',

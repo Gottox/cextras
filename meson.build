@@ -9,7 +9,7 @@ project(
     version: '0.1',
 )
 
-threads_dep = dependency('threads', required: get_option('threads'))
+threads_dep = dependency('threads', required: get_option('concurrency'))
 
 subdir('lib')
 subdir('include')
