@@ -1,0 +1,7 @@
+# https://github.com/Gottox/mk
+container: gottox/sqsh-tools:latest
+configure:
+  - -Dwerror=false
+  - -Dtest=true
+
+default: test
