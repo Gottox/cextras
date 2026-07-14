@@ -1,5 +1,6 @@
 #define _GNU_SOURCE
 
+#include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -81,7 +82,8 @@ generate_flat_table(FILE *file, size_t codepoint_size, int field_nbr) {
 		if (parse_range(line, field_nbr, &range) < 0) {
 			continue;
 		}
-		for (uint32_t i = range.start; i <= range.end; i++) {
+		for (uint32_t i = range.start; i <= range.end && i < codepoint_size;
+			 i++) {
 			table[i] = true;
 		}
 	}
@@ -214,6 +216,7 @@ main(int argc, char *argv[]) {
 	int field_nbr = atoi(argv[3]);
 	char *table_name = argv[2];
 	FILE *file = fopen(argv[1], "r");
+	assert(file != NULL);
 	size_t codepoint_size = find_max(file, field_nbr);
 
 	rv = fseek(file, 0, SEEK_SET);
