@@ -179,4 +179,4 @@ int cx_semaphore_destroy(struct CxSemaphore *semaphore);
 #ifdef __cplusplus
 }
 #endif
-#endif // CEXTRAS_CONCURRENCY_H
+#endif /* CEXTRAS_CONCURRENCY_H */

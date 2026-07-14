@@ -4,7 +4,7 @@ project(
     default_options: [
         'c_std=c11',
         'warning_level=3',
-        'optimization=0',
+        'werror=true',
     ],
     version: '0.1',
 )

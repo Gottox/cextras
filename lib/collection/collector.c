@@ -108,7 +108,7 @@ cx_collect(char ***target, cx_collector_next_t next, void *iterator) {
 	}
 
 	uintptr_t *result = (uintptr_t *)cx_buffer_unwrap(&list);
-	for (cx_index_t i = 0; i < elements; i++) {
+	for (size_t i = 0; i < elements; i++) {
 		result[i] += base_size + (uintptr_t)result;
 	}
 	*target = (char **)result;

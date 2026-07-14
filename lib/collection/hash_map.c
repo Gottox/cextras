@@ -52,13 +52,13 @@ struct CxHashSlot {
 	uint64_t key;
 	uint8_t state;
 	uint8_t psl;
-	// void data[];
+	/* void data[]; */
 };
 
 static size_t
 slot_size(size_t element_size) {
 	size_t base = sizeof(struct CxHashSlot);
-	// Align element_size to void* boundary for safe access
+	/* Align element_size to void* boundary for safe access */
 	size_t aligned =
 			(element_size + sizeof(void *) - 1) & ~(sizeof(void *) - 1);
 	return base + aligned;

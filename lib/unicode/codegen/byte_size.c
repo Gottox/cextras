@@ -16,7 +16,7 @@ main(int argc, char *argv[]) {
 	}
 
 	printf(HEADER, utf16_table ? "utf16" : "utf8");
-	for (int i = 0; i < 256; i++) {
+	for (size_t i = 0; i < 256; i++) {
 		if ((i & 0x80) == 0) {
 			putchar('1');
 		} else if ((i & 0xE0) == 0xC0) {

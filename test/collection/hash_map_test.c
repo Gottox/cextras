@@ -106,26 +106,26 @@ static void
 stress_test_many_elements(void) {
 	int rv;
 	struct CxHashMap map;
-	const int count = 10000;
+	const size_t count = 10000;
 
 	rv = cx_hash_map_init(&map, 16, sizeof(uint64_t));
 	ASSERT_EQ(0, rv);
 
-	for (int i = 0; i < count; i++) {
+	for (size_t i = 0; i < count; i++) {
 		uint64_t data = (uint64_t)i * 100;
 		const uint64_t *ptr = cx_hash_map_put(&map, (uint64_t)i, &data);
 		ASSERT_NOT_NULL(ptr);
 		ASSERT_EQ(data, *ptr);
 	}
 
-	for (int i = 0; i < count; i++) {
+	for (size_t i = 0; i < count; i++) {
 		uint64_t *ptr = cx_hash_map_get(&map, (uint64_t)i);
 		ASSERT_NOT_NULL(ptr);
 		ASSERT_EQ((uint64_t)i * 100, *ptr);
 		cx_hash_map_delete(&map, i);
 	}
 
-	for (int i = 0; i < count; i++) {
+	for (size_t i = 0; i < count; i++) {
 		cx_hash_map_delete(&map, (uint64_t)i);
 	}
 
@@ -160,12 +160,12 @@ static void
 test_collision_handling(void) {
 	int rv;
 	struct CxHashMap map;
-	const int count = 50;
+	const size_t count = 50;
 
 	rv = cx_hash_map_init(&map, 8, sizeof(uint64_t));
 	ASSERT_EQ(0, rv);
 
-	for (int i = 0; i < count; i++) {
+	for (size_t i = 0; i < count; i++) {
 		uint64_t data = (uint64_t)i * 7;
 		const uint64_t *ptr = cx_hash_map_put(&map, (uint64_t)i, &data);
 		ASSERT_NOT_NULL(ptr);
@@ -240,7 +240,7 @@ test_hash_map_size(void) {
 	ASSERT_EQ((size_t)32, size);
 
 	/* Add elements - capacity may grow */
-	for (int i = 0; i < 50; i++) {
+	for (size_t i = 0; i < 50; i++) {
 		uint64_t data = (uint64_t)i;
 		cx_hash_map_put(&map, (uint64_t)i, &data);
 	}
@@ -262,7 +262,7 @@ test_delete_and_reinsert(void) {
 	ASSERT_EQ(0, rv);
 
 	/* Insert elements */
-	for (int i = 0; i < 10; i++) {
+	for (size_t i = 0; i < 10; i++) {
 		uint64_t data = (uint64_t)i * 10;
 		cx_hash_map_put(&map, (uint64_t)i, &data);
 	}
@@ -313,7 +313,7 @@ test_high_collision_robin_hood(void) {
 	ASSERT_EQ(0, rv);
 
 	/* Insert many elements to trigger multiple resizes and robin hood swaps */
-	for (int i = 0; i < 200; i++) {
+	for (size_t i = 0; i < 200; i++) {
 		uint64_t data = (uint64_t)i * 3;
 		const uint64_t *ptr = cx_hash_map_put(&map, (uint64_t)i, &data);
 		ASSERT_NOT_NULL(ptr);
@@ -321,20 +321,20 @@ test_high_collision_robin_hood(void) {
 	}
 
 	/* Verify all elements */
-	for (int i = 0; i < 200; i++) {
+	for (size_t i = 0; i < 200; i++) {
 		uint64_t *ptr = cx_hash_map_get(&map, (uint64_t)i);
 		ASSERT_NOT_NULL(ptr);
 		ASSERT_EQ((uint64_t)i * 3, *ptr);
 	}
 
 	/* Delete every other element */
-	for (int i = 0; i < 200; i += 2) {
+	for (size_t i = 0; i < 200; i += 2) {
 		rv = cx_hash_map_delete(&map, (uint64_t)i);
 		ASSERT_EQ(0, rv);
 	}
 
 	/* Verify remaining elements still accessible */
-	for (int i = 1; i < 200; i += 2) {
+	for (size_t i = 1; i < 200; i += 2) {
 		uint64_t *ptr = cx_hash_map_get(&map, (uint64_t)i);
 		ASSERT_NOT_NULL(ptr);
 		ASSERT_EQ((uint64_t)i * 3, *ptr);

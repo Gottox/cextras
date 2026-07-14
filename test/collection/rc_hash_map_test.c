@@ -88,31 +88,31 @@ static void
 stress_test_resize_with_held_refs(void) {
 	int rv;
 	struct CxRcHashMap map;
-	const int count = 100;
+	const size_t count = 100;
 	const uint64_t *held_refs[count];
 
 	rv = cx_rc_hash_map_init(&map, 8, sizeof(uint64_t), rc_hash_map_deinit);
 	ASSERT_EQ(0, rv);
 
-	for (int i = 0; i < count; i++) {
+	for (size_t i = 0; i < count; i++) {
 		uint64_t data = (uint64_t)i;
 		const uint64_t *ptr = cx_rc_hash_map_put(&map, (uint64_t)i, &data);
 		ASSERT_NOT_NULL(ptr);
 		held_refs[i] = ptr;
 	}
 
-	for (int i = 0; i < count; i++) {
+	for (size_t i = 0; i < count; i++) {
 		ASSERT_EQ((uint64_t)i, *held_refs[i]);
 	}
 
-	for (int i = 0; i < count; i++) {
+	for (size_t i = 0; i < count; i++) {
 		uint64_t *ptr = cx_rc_hash_map_retain(&map, (uint64_t)i);
 		ASSERT_NOT_NULL(ptr);
 		ASSERT_EQ((uint64_t)i, *ptr);
 		cx_rc_hash_map_release(&map, ptr);
 	}
 
-	for (int i = 0; i < count; i++) {
+	for (size_t i = 0; i < count; i++) {
 		cx_rc_hash_map_release(&map, held_refs[i]);
 	}
 
@@ -158,7 +158,7 @@ test_rc_hash_map_size(void) {
 	ASSERT_EQ((size_t)32, size);
 
 	/* Add elements - capacity may grow */
-	for (int i = 0; i < 50; i++) {
+	for (size_t i = 0; i < 50; i++) {
 		uint64_t data = (uint64_t)i;
 		cx_rc_hash_map_put(&map, (uint64_t)i, &data);
 	}
@@ -168,7 +168,7 @@ test_rc_hash_map_size(void) {
 	ASSERT_TRUE(size > 32);
 
 	/* Clean up - release all */
-	for (int i = 0; i < 50; i++) {
+	for (size_t i = 0; i < 50; i++) {
 		cx_rc_hash_map_release_key(&map, (uint64_t)i);
 	}
 

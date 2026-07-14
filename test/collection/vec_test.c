@@ -80,21 +80,21 @@ static void
 push_and_get(void) {
 	struct CxVec vec = {0};
 
-	cx_vec_init(&vec, sizeof(int));
+	cx_vec_init(&vec, sizeof(size_t));
 	int rv = cx_vec_reserve(&vec, 4);
 	ASSERT_EQ(0, rv);
 
-	for (int i = 0; i < 4; i++) {
-		int v = i * 10;
+	for (size_t i = 0; i < 4; i++) {
+		size_t v = i * 10;
 		void *p = cx_vec_push(&vec, &v);
 		ASSERT_NOT_NULL(p);
-		ASSERT_EQ(v, *(int *)p);
+		ASSERT_EQ(v, *(size_t *)p);
 	}
 	ASSERT_EQ(4, vec.size);
 	ASSERT_EQ(4, vec.capacity);
 
-	for (int i = 0; i < 4; i++) {
-		int *p = cx_vec_get(&vec, (size_t)i);
+	for (size_t i = 0; i < 4; i++) {
+		size_t *p = cx_vec_get(&vec, i);
 		ASSERT_NOT_NULL(p);
 		ASSERT_EQ(i * 10, *p);
 	}

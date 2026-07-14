@@ -95,7 +95,7 @@ cx_prealloc_pool_get(struct CxPreallocPool *pool) {
 void
 cx_prealloc_pool_recycle(struct CxPreallocPool *pool, void *element) {
 	if (element != NULL) {
-		// Save the next pointer in the element.
+		/* Save the next pointer in the element. */
 		*(void **)element = pool->reuse_pool;
 		pool->reuse_pool = element;
 	}
@@ -103,7 +103,7 @@ cx_prealloc_pool_recycle(struct CxPreallocPool *pool, void *element) {
 
 void
 cx_prealloc_pool_cleanup(struct CxPreallocPool *pool) {
-	for (cx_index_t i = 0; i < pool->pool_count; i++) {
+	for (size_t i = 0; i < pool->pool_count; i++) {
 		free(pool->pools[i]);
 	}
 

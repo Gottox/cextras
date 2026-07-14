@@ -58,7 +58,7 @@ resize_buffer_exact(struct CxBuffer *buffer, size_t new_capacity) {
 	return 0;
 }
 
-static inline int
+static int
 round_to_next_pow2(size_t *val) {
 	size_t i = *val;
 	if (i <= 1) {
@@ -68,7 +68,7 @@ round_to_next_pow2(size_t *val) {
 		if (leading_zeros == 0) {
 			return -CX_ERR_INTEGER_OVERFLOW;
 		}
-		// Set the bit at the position of the first 0 to 1
+		/* Set the bit at the position of the first 0 to 1 */
 		*val = 1ULL << (sizeof(long long) * 8 - leading_zeros);
 	}
 	return 0;
@@ -86,7 +86,7 @@ cx_buffer_add_capacity(
 	}
 
 	if (new_capacity > buffer->capacity) {
-		// round new_capacity up to the next power of 2
+		/* round new_capacity up to the next power of 2 */
 		int rv = round_to_next_pow2(&new_capacity);
 		if (rv < 0) {
 			return rv;

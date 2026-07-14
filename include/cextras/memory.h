@@ -31,9 +31,9 @@
  * @file         threadpool.h
  */
 
-#ifndef MEMORY_H
+#ifndef CEXTRAS_MEMORY_H
 
-#define MEMORY_H
+#define CEXTRAS_MEMORY_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -120,4 +120,4 @@ void cx_prealloc_pool_cleanup(struct CxPreallocPool *pool);
 #ifdef __cplusplus
 }
 #endif
-#endif // MEMORY_H
+#endif /* CEXTRAS_MEMORY_H */

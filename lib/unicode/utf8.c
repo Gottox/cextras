@@ -43,7 +43,7 @@ cx_utf8_bidx(const uint8_t *str, size_t length, size_t char_index) {
 int32_t
 cx_utf8_cp(const uint8_t *chr, size_t length) {
 	if (!chr) {
-		return 0; // return 0 for null string
+		return 0;
 	}
 
 	uint8_t char_len = cx_utf8_csize((uint8_t *)chr, length);

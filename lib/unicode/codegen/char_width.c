@@ -8,32 +8,32 @@
 #include <string.h>
 
 struct Range {
-	uint32_t start;
-	uint32_t end;
+	size_t start;
+	size_t end;
 };
 
 static int
-parse_range(char *line, int field_nbr, struct Range *range) {
+parse_range(char *line, size_t field_nbr, struct Range *range) {
 	int rv = 0;
 
 	line = strtok(line, ";");
-	rv = sscanf(line, "%x..%x", &range->start, &range->end);
+	rv = sscanf(line, "%lx..%lx", &range->start, &range->end);
 	if (rv != 2) {
-		rv = sscanf(line, "%x", &range->start);
+		rv = sscanf(line, "%lx", &range->start);
 		if (rv != 1) {
 			return -1;
 		}
 		range->end = range->start;
 	}
 
-	for (int i = 0; i < field_nbr; i++) {
+	for (size_t i = 0; i < field_nbr; i++) {
 		line = strtok(NULL, ";#");
 	}
-	// For EastAsianWidth.txt
+	/* For EastAsianWidth.txt */
 	if (strcmp(line, " W  ") == 0) {
 		return 0;
 	}
-	// For UnicodeData.txt
+	/* For UnicodeData.txt */
 	if (strcmp(line, "Cc") == 0) {
 		return 0;
 	}
@@ -82,7 +82,7 @@ generate_flat_table(FILE *file, size_t codepoint_size, int field_nbr) {
 		if (parse_range(line, field_nbr, &range) < 0) {
 			continue;
 		}
-		for (uint32_t i = range.start; i <= range.end && i < codepoint_size;
+		for (size_t i = range.start; i <= range.end && i < codepoint_size;
 			 i++) {
 			table[i] = true;
 		}

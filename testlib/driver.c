@@ -25,7 +25,7 @@ static const char *color_status = "";
 static const char *color_good = "";
 static const char *color_reset = "";
 static char **patterns = NULL;
-static int pattern_count = 0;
+static size_t pattern_count = 0;
 static bool verbose = false;
 static FILE *tap_output = NULL;
 
@@ -62,7 +62,7 @@ static int
 T_______TEST_BEGINS_ABOVE_______T(
 		const struct TestlibTest *test, size_t index) {
 	bool found = true;
-	for (int i = 0; i < pattern_count; i++) {
+	for (size_t i = 0; i < pattern_count; i++) {
 		found = false;
 		if (fnmatch(patterns[i], test->name, 0) == 0) {
 			found = true;
@@ -157,7 +157,7 @@ main(int argc, char *argv[]) {
 			color_on(optarg);
 			break;
 		case 'l':
-			for (int i = 0; testlib_tests[i].name != NULL; i++) {
+			for (size_t i = 0; testlib_tests[i].name != NULL; i++) {
 				printf("%s\n", testlib_tests[i].name);
 			}
 			exit(EXIT_SUCCESS);
