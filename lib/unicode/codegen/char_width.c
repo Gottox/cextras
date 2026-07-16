@@ -33,6 +33,9 @@ parse_range(char *line, size_t field_nbr, struct Range *range) {
 	if (strcmp(line, " W  ") == 0) {
 		return 0;
 	}
+	if (strcmp(line, " F  ") == 0) {
+		return 0;
+	}
 	/* For UnicodeData.txt */
 	if (strcmp(line, "Cc") == 0) {
 		return 0;
@@ -153,6 +156,9 @@ print_radix_table(
 			}
 		}
 	}
+
+	/* Level 1 indices are emitted into a uint8_t array. */
+	assert(table_index + need_full + need_null <= UINT8_MAX);
 
 	if (need_full) {
 		fprintf(out, "\n#define TBL_FULL %zu\n", table_index);
