@@ -3,5 +3,9 @@ configure:
   - -Dwarning_level=3
   - -Dtest=true
   - -Db_sanitize=address,undefined
+  - -Dmemory=true
+  - -Dcollection=true
+  - -Dconcurrency=true
+  - -Dunicode=true
 default:
   - test
