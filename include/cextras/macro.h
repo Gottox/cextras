@@ -49,6 +49,12 @@ extern "C" {
 
 #define CX_DIVIDE_CEIL(x, y) ((x) / (y) + !!((x) % (y)))
 
+#define CX___ERR_ON_ZERO(x) (sizeof(char[1 - 2 * !!(x)]) - 1)
+#define CX___MUST_ARRAY(x) \
+	CX___ERR_ON_ZERO(__builtin_types_compatible_p( \
+			__typeof__(x), __typeof__(&(x)[0])))
+#define CX_LENGTH(x) (sizeof(x) / sizeof((x)[0]) + CX___MUST_ARRAY(x))
+
 #ifdef __cplusplus
 }
 #endif
