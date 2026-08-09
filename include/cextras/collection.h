@@ -808,6 +808,8 @@ int cx_vec_reserve(struct CxVec *vec, size_t capacity);
 
 void *cx_vec_push(struct CxVec *vec, void *value);
 
+int cx_vec_remove(struct CxVec *vec, size_t index, void *item);
+
 void *cx_vec_pull(struct CxVec *vec, void *value);
 
 void *cx_vec_get(const struct CxVec *vec, size_t index);
@@ -830,6 +832,8 @@ struct CxPinVec {
 void cx_pin_vec_init(struct CxPinVec *vec, size_t element_size);
 
 int cx_pin_vec_reserve(struct CxPinVec *vec, size_t capacity);
+
+int cx_pin_vec_remove(struct CxPinVec *vec, size_t index);
 
 void *cx_pin_vec_push(struct CxPinVec *vec, void *value);
 

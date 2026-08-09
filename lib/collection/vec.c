@@ -63,6 +63,27 @@ cx_vec_reserve(struct CxVec *vec, size_t capacity) {
 	return 0;
 }
 
+int
+cx_vec_remove(struct CxVec *vec, size_t index, void *item) {
+	uint8_t *vec_item = cx_vec_get(vec, index);
+	if (vec_item == NULL) {
+		return -1;
+	}
+	if (item != NULL) {
+		memcpy(item, vec_item, vec->element_size);
+	}
+
+	size_t bytes_to_move = 0;
+	if(CX_MUL_OVERFLOW(vec->size - index - 1, vec->element_size, &bytes_to_move)) {
+		return -1;
+	}
+	if (bytes_to_move > 0) {
+		memmove(vec_item, TO_PTR(vec, index + 1), bytes_to_move);
+	}
+	vec->size--;
+	return 0;
+}
+
 void *
 cx_vec_push(struct CxVec *vec, void *value) {
 	if (vec->size == vec->capacity) {

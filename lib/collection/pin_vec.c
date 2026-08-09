@@ -66,6 +66,18 @@ cx_pin_vec_push(struct CxPinVec *vec, void *value) {
 }
 
 int
+cx_pin_vec_remove(struct CxPinVec *vec, size_t index) {
+	int rv;
+	void *item;
+	rv = cx_vec_remove(&vec->vec, index, &item);
+	if (rv < 0) {
+		return rv;
+	}
+	cx_prealloc_pool_recycle(&vec->pool, item);
+	return 0;
+}
+
+int
 cx_pin_vec_pull(struct CxPinVec *vec) {
 	void *element = NULL;
 	if (cx_vec_pull(&vec->vec, &element) == NULL) {
