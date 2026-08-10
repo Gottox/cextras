@@ -56,11 +56,11 @@ set_and_get_element(void) {
 	uintptr_t value = 42;
 	const uintptr_t *set_ptr = cx_radix_tree_put(&map, key, &value);
 	ASSERT_NOT_NULL(set_ptr);
-	ASSERT_EQ(42, *set_ptr);
+	ASSERT_EQ(42u, *set_ptr);
 
 	const uintptr_t *get_ptr = cx_radix_tree_get(&map, key);
 	ASSERT_EQ(set_ptr, get_ptr);
-	ASSERT_EQ(42, *get_ptr);
+	ASSERT_EQ(42u, *get_ptr);
 
 	rv = cx_radix_tree_delete(&map, key);
 	ASSERT_EQ(0, rv);
@@ -79,11 +79,11 @@ set_size_max(void) {
 	uintptr_t value = 42;
 	const uintptr_t *set_ptr = cx_radix_tree_put(&map, key, &value);
 	ASSERT_NOT_NULL(set_ptr);
-	ASSERT_EQ(42, *set_ptr);
+	ASSERT_EQ(42u, *set_ptr);
 
 	const uintptr_t *get_ptr = cx_radix_tree_get(&map, key);
 	ASSERT_EQ(set_ptr, get_ptr);
-	ASSERT_EQ(42, *get_ptr);
+	ASSERT_EQ(42u, *get_ptr);
 
 	rv = cx_radix_tree_delete(&map, key);
 	ASSERT_EQ(0, rv);

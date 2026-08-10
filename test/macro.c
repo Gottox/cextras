@@ -9,7 +9,7 @@
 static void
 array_size(void) {
 	uint64_t arr[1024] = {0};
-	ASSERT_EQ(CX_LENGTH(arr), 1024);
+	ASSERT_EQ(CX_LENGTH(arr), 1024u);
 }
 
 DECLARE_TESTS

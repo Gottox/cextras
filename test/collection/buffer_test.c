@@ -83,13 +83,13 @@ shift_buffer(void) {
 
 	/* Drop "Hello ", leaving "World" */
 	cx_buffer_shift(&buffer, 6);
-	ASSERT_EQ(5, cx_buffer_size(&buffer));
+	ASSERT_EQ(5u, cx_buffer_size(&buffer));
 	rv = memcmp(cx_buffer_data(&buffer), "World", 5);
 	ASSERT_EQ(0, rv);
 
 	/* Shifting the whole remainder empties the buffer */
 	cx_buffer_shift(&buffer, 5);
-	ASSERT_EQ(0, cx_buffer_size(&buffer));
+	ASSERT_EQ(0u, cx_buffer_size(&buffer));
 
 	rv = cx_buffer_cleanup(&buffer);
 	ASSERT_EQ(0, rv);

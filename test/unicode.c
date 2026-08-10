@@ -14,13 +14,13 @@ static void
 test_unicode_width(void) {
 	size_t columns;
 	columns = cx_utf8_cols((uint8_t *)"\0", 1);
-	ASSERT_EQ(0, columns);
+	ASSERT_EQ(0u, columns);
 	columns = cx_utf8_cols((uint8_t *)"a", 1);
-	ASSERT_EQ(1, columns);
+	ASSERT_EQ(1u, columns);
 	columns = cx_utf8_cols((uint8_t *)"ä", 2);
-	ASSERT_EQ(1, columns);
+	ASSERT_EQ(1u, columns);
 	columns = cx_utf8_cols((uint8_t *)"😃", 4);
-	ASSERT_EQ(2, columns);
+	ASSERT_EQ(2u, columns);
 }
 
 static void
@@ -28,7 +28,7 @@ test_unicode_colidx(void) {
 	size_t idx;
 
 	idx = cx_utf8_colidx((uint8_t *)"a😃", 5, 3, 8);
-	ASSERT_EQ(5, idx);
+	ASSERT_EQ(5u, idx);
 }
 
 static void
@@ -36,7 +36,7 @@ test_unicode_colidx_tab(void) {
 	size_t idx;
 
 	idx = cx_utf8_colidx((uint8_t *)"a\t", 2, 3, 8);
-	ASSERT_EQ(2, idx);
+	ASSERT_EQ(2u, idx);
 }
 
 DECLARE_TESTS

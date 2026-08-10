@@ -10,6 +10,7 @@
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -60,45 +61,63 @@ struct TestlibTest {
 	} while (0)
 #define ASSERT_STREQS(a, b, s) \
 	do { \
-		if (strncmp((a), (b), (s))) { \
-			FAIL("%s == %s; %s == %s", #a, #b, a, b); \
+		const char *a_ = (a); \
+		const char *b_ = (b); \
+		size_t s_ = (s); \
+		if (strncmp(a_, b_, s_)) { \
+			FAIL("%s == %s; %s == %s", #a, #b, a_, b_); \
 		} \
 	} while (0)
 #define ASSERT_STRNEQS(a, b, s) \
 	do { \
-		if (!strncmp((a), (b), (s))) { \
-			FAIL("%s == %s; %s == %s", #a, #b, a, b); \
+		const char *a_ = (a); \
+		const char *b_ = (b); \
+		size_t s_ = (s); \
+		if (!strncmp(a_, b_, s_)) { \
+			FAIL("%s == %s; %s == %s", #a, #b, a_, b_); \
 		} \
 	} while (0)
 #define ASSERT_STREQ(a, b) \
 	do { \
-		if (strcmp((a), (b))) { \
-			FAIL("%s == %s; %s == %s", #a, #b, a, b); \
+		const char *a_ = (a); \
+		const char *b_ = (b); \
+		if (strcmp(a_, b_)) { \
+			FAIL("%s == %s; %s == %s", #a, #b, a_, b_); \
 		} \
 	} while (0)
 #define ASSERT_STRNEQ(a, b) \
 	do { \
-		if (!strcmp((a), (b))) { \
-			FAIL("%s == %s; %s == %s", #a, #b, a, b); \
+		const char *a_ = (a); \
+		const char *b_ = (b); \
+		if (!strcmp(a_, b_)) { \
+			FAIL("%s == %s; %s == %s", #a, #b, a_, b_); \
 		} \
 	} while (0)
 #define ASSERT_MEMEQ(a, b, s) \
 	do { \
-		if (memcmp((a), (b), (s))) { \
-			FAIL("%s == %s (%zu bytes)", #a, #b, (size_t)(s)); \
+		const void *a_ = (a); \
+		const void *b_ = (b); \
+		size_t s_ = (s); \
+		if (memcmp(a_, b_, s_)) { \
+			FAIL("%s == %s (%zu bytes)", #a, #b, s_); \
 		} \
 	} while (0)
 #define ASSERT_MEMNEQ(a, b, s) \
 	do { \
-		if (!memcmp((a), (b), (s))) { \
-			FAIL("%s != %s (%zu bytes)", #a, #b, (size_t)(s)); \
+		const void *a_ = (a); \
+		const void *b_ = (b); \
+		size_t s_ = (s); \
+		if (!memcmp(a_, b_, s_)) { \
+			FAIL("%s != %s (%zu bytes)", #a, #b, s_); \
 		} \
 	} while (0)
 #define ASSERT_OP(a, op, b) \
 	do { \
-		if (!((a)op(b))) { \
+		__typeof__(a) a_ = (a); \
+		__typeof__(b) b_ = (b); \
+		if (!(a_ op b_)) { \
 			FAIL("%s " #op " %s; %" PRIxPTR " " #op " %" PRIxPTR, #a, #b, \
-				 (intptr_t)a, (intptr_t)b); \
+				 (intptr_t)a_, (intptr_t)b_); \
 		} \
 	} while (0)
 #define ASSERT_EQ(a, b) ASSERT_OP(a, ==, b)

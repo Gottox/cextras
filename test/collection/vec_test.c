@@ -42,16 +42,16 @@ init_vec(void) {
 	struct CxVec vec = {0};
 
 	cx_vec_init(&vec, sizeof(int));
-	ASSERT_EQ(0, vec.size);
-	ASSERT_EQ(0, vec.capacity);
+	ASSERT_EQ(0u, vec.size);
+	ASSERT_EQ(0u, vec.capacity);
 	ASSERT_EQ(sizeof(int), vec.element_size);
 	ASSERT_NULL(vec.data);
 
 	cx_vec_cleanup(&vec);
 	ASSERT_NULL(vec.data);
-	ASSERT_EQ(0, vec.size);
-	ASSERT_EQ(0, vec.capacity);
-	ASSERT_EQ(0, vec.element_size);
+	ASSERT_EQ(0u, vec.size);
+	ASSERT_EQ(0u, vec.capacity);
+	ASSERT_EQ(0u, vec.element_size);
 }
 
 static void
@@ -59,19 +59,19 @@ reserve_capacity(void) {
 	struct CxVec vec = {0};
 
 	cx_vec_init(&vec, sizeof(uint64_t));
-	ASSERT_EQ(0, vec.capacity);
+	ASSERT_EQ(0u, vec.capacity);
 	ASSERT_NULL(vec.data);
 
 	int rv = cx_vec_reserve(&vec, 4);
 	ASSERT_EQ(0, rv);
-	ASSERT_EQ(4, vec.capacity);
+	ASSERT_EQ(4u, vec.capacity);
 	ASSERT_NOT_NULL(vec.data);
 	ASSERT_EQ(sizeof(uint64_t), vec.element_size);
 
 	/* Reserving a smaller capacity is a no-op. */
 	rv = cx_vec_reserve(&vec, 2);
 	ASSERT_EQ(0, rv);
-	ASSERT_EQ(4, vec.capacity);
+	ASSERT_EQ(4u, vec.capacity);
 
 	cx_vec_cleanup(&vec);
 }
@@ -90,8 +90,8 @@ push_and_get(void) {
 		ASSERT_NOT_NULL(p);
 		ASSERT_EQ(v, *(size_t *)p);
 	}
-	ASSERT_EQ(4, vec.size);
-	ASSERT_EQ(4, vec.capacity);
+	ASSERT_EQ(4u, vec.size);
+	ASSERT_EQ(4u, vec.capacity);
 
 	for (size_t i = 0; i < 4; i++) {
 		size_t *p = cx_vec_get(&vec, i);
@@ -128,19 +128,19 @@ push_grows_capacity(void) {
 	cx_vec_init(&vec, sizeof(int));
 	int rv = cx_vec_reserve(&vec, 2);
 	ASSERT_EQ(0, rv);
-	ASSERT_EQ(2, vec.capacity);
+	ASSERT_EQ(2u, vec.capacity);
 
 	int a = 1, b = 2, c = 3;
 	void *p = cx_vec_push(&vec, &a);
 	ASSERT_NOT_NULL(p);
 	p = cx_vec_push(&vec, &b);
 	ASSERT_NOT_NULL(p);
-	ASSERT_EQ(2, vec.capacity);
+	ASSERT_EQ(2u, vec.capacity);
 
 	p = cx_vec_push(&vec, &c);
 	ASSERT_NOT_NULL(p);
-	ASSERT_EQ(3, vec.size);
-	ASSERT_LE(3, vec.capacity);
+	ASSERT_EQ(3u, vec.size);
+	ASSERT_LE(3u, vec.capacity);
 
 	ASSERT_EQ(1, *(int *)cx_vec_get(&vec, 0));
 	ASSERT_EQ(2, *(int *)cx_vec_get(&vec, 1));
@@ -193,23 +193,23 @@ pull_returns_last_and_shrinks(void) {
 	ASSERT_NOT_NULL(p);
 	p = cx_vec_push(&vec, &c);
 	ASSERT_NOT_NULL(p);
-	ASSERT_EQ(3, vec.size);
+	ASSERT_EQ(3u, vec.size);
 
 	int out = 0;
 	void *pulled = cx_vec_pull(&vec, &out);
 	ASSERT_EQ(&out, pulled);
 	ASSERT_EQ(3, out);
-	ASSERT_EQ(2, vec.size);
+	ASSERT_EQ(2u, vec.size);
 
 	pulled = cx_vec_pull(&vec, &out);
 	ASSERT_EQ(&out, pulled);
 	ASSERT_EQ(2, out);
-	ASSERT_EQ(1, vec.size);
+	ASSERT_EQ(1u, vec.size);
 
 	pulled = cx_vec_pull(&vec, &out);
 	ASSERT_EQ(&out, pulled);
 	ASSERT_EQ(1, out);
-	ASSERT_EQ(0, vec.size);
+	ASSERT_EQ(0u, vec.size);
 
 	cx_vec_cleanup(&vec);
 }
